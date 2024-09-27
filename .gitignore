@@ -1,5 +1,6 @@
 # perso
-dataset/bases/
+dataset/*.csv
+
 
 
 # Byte-compiled / optimized / DLL files

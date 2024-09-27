@@ -4,7 +4,7 @@ import os
 chemin_racine = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 chemin_src = chemin_racine +'\Scr\\'
-chemin_data = chemin_racine +'\dataset\\bases\\'
+chemin_data = chemin_racine +'\dataset\\'
 chemin_data_ref = chemin_racine +'\dataset\\ref\\'
 chemin_model = chemin_racine +'\model\\'
 
