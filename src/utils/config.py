@@ -1,12 +1,10 @@
 import os
 
 # Définition des chemins
-chemin_racine = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-chemin_src = chemin_racine +'\Scr\\'
-chemin_data = chemin_racine +'\dataset\\'
-chemin_data_ref = chemin_racine +'\dataset\\ref\\'
-chemin_model = chemin_racine +'\model\\'
+chemin_data = '../../data'
+chemin_data_ref = '../../data/ref'
+chemin_model = '../../models'
 
 #définition des urls
 url_incident="https://data.london.gov.uk/download/london-fire-brigade-incident-records/f5066d66-c7a3-415f-9629-026fbda61822/LFB%20Incident%20data%20from%202018%20onwards.csv.xlsx"

@@ -1,11 +1,7 @@
-# entrainement du model
-
 import sys
 import os
-scr_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(scr_dir + '/class')
 
-import config as cfg
+from src.utils import config as cfg
 import pandas as pd
 
 from sklearn.preprocessing import OneHotEncoder
@@ -15,16 +11,11 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, m
 
 import joblib
 
-
-
-df_base = pd.read_csv(cfg.chemin_data + cfg.fichier_global)
-
-
+df_base = pd.read_csv(os.path.join(str(cfg.chemin_data), str(cfg.fichier_global)))
 
 # Split the data into features and target
 feats=df_base.drop('AttendanceTimeSeconds', axis=1)
 target=df_base['AttendanceTimeSeconds']
-
 
 # Variables numériques
 numeric_features = feats.select_dtypes(include=['int64','float64']).columns.values
@@ -53,9 +44,8 @@ X_train, X_test, y_train, y_test = train_test_split(feats, target, test_size=0.2
 model.fit(X_train, y_train)
 
 # Sauvegarde du modèle
-joblib.dump(model, cfg.chemin_model + cfg.fichier_model)
-joblib.dump(encoder, cfg.chemin_model + 'onehot_encoder.pkl')
-
+joblib.dump(model, os.path.join(cfg.chemin_model, cfg.fichier_model))
+joblib.dump(encoder, os.path.join(cfg.chemin_model, 'onehot_encoder.pkl'))
 # Prédiction sur l'ensemble de test
 y_pred = model.predict(X_test)
 

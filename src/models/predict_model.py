@@ -2,16 +2,13 @@
 
 import sys
 import os
-scr_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(scr_dir + '/class')
-import config as cfg
+from src.utils import config as cfg
 import pandas as pd
 import joblib
 
 # Charger le modèle et l'encodeur
-model = joblib.load(cfg.chemin_model + cfg.fichier_model)
-encoder = joblib.load(cfg.chemin_model + 'onehot_encoder.pkl')
-
+model = joblib.load(os.path.join(cfg.chemin_model, cfg.fichier_model))
+encoder = joblib.load(os.path.join(cfg.chemin_model, 'onehot_encoder.pkl'))
 # Données d'entrée
 distance = 1.3  # Exemple de distance
 station_de_depart = 'Acton'  # Exemple de station de départ
