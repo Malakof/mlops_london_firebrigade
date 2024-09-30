@@ -1,5 +1,8 @@
-# perso
-dataset/*.csv
+/data/global_data.csv
+/data/incident_data.csv
+/data/incident_data.pkl
+/data/mobilisation_data.csv
+/data/mobilisation_data.pkl
 
 
 
@@ -166,10 +169,11 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 .DS_Store
-/data/global_data.csv
-/data/incident_data.csv
-/data/incident_data.pkl
-/data/mobilisation_data.csv
-/data/mobilisation_data.pkl
-/data/processed/
+
+# Vincent
+dataset/*.csv
+# Richard
 /data/raw/
+/data/processed/
+# Repopack
+/repopack/
