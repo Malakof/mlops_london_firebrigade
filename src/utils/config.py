@@ -1,5 +1,6 @@
 import os
 import logging
+import warnings
 from logging.handlers import RotatingFileHandler
 
 # Définition des chemins
@@ -51,6 +52,7 @@ BandWidth_speed_min = 5
 BandWidth_speed_max = 35
 BandWidth_AttendanceTimeSeconds_min = 193
 BandWidth_AttendanceTimeSeconds_max = 539
+
 
 
 def setup_logging():
@@ -105,3 +107,33 @@ def setup_logging():
             logging.getLogger('train_model'), logging.getLogger('predict_model'), logging.getLogger('eval_model'))
 
 logger_data, logger_features, logger_train, logger_predict, logger_eval = setup_logging()
+
+# Define a custom warning handler
+def custom_show_warning(message, category, filename, lineno, file=None, line=None):
+    log_message = f"{filename}:{lineno}: {category.__name__}: {message}"
+
+    # Example: Decide based on the filename which logger to use
+    if 'features' in filename:
+        logger = logger_features
+    elif 'data' in filename:
+        logger = logger_data
+    elif 'train' in filename:
+        logger = logger_train
+    elif 'predict' in filename:
+        logger = logger_predict
+    elif 'eval' in filename:
+        logger = logger_eval
+    else:
+        logger = logging.getLogger()  # Default to the root logger if no specific logger is found
+
+    # Log to the specific logger
+    logger.warning(log_message)
+
+    # Also log to the root logger
+    root_logger = logging.getLogger()
+
+# Set the custom warning handler
+warnings.showwarning = custom_show_warning
+
+# Generate a warning to test
+# warnings.warn("This is a TEST warning", UserWarning)
