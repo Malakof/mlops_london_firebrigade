@@ -162,6 +162,10 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# Repopack
+/repopack/
+/repopack/*
+
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
@@ -175,5 +179,3 @@ dataset/*.csv
 # Richard
 /data/raw/
 /data/processed/
-# Repopack
-/repopack/
