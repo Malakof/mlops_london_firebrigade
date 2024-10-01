@@ -1,8 +1,10 @@
+import argparse
 import os
 import sys
-import argparse
-import pandas as pd
+
 import joblib
+import pandas as pd
+
 from src.utils import config as cfg
 from src.utils.config import logger_predict as logging
 

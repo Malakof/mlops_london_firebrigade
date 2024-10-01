@@ -1,9 +1,11 @@
-import os
 import argparse
-import pandas as pd
 import logging
+import os
+
+import pandas as pd
 import requests
 from tqdm import tqdm
+
 from src.utils import config as cfg
 from src.utils.config import logger_data as logging
 

@@ -1,12 +1,13 @@
 import argparse
 import os
-import sys
-import pandas as pd
+
 import joblib
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.model_selection import train_test_split
+import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, max_error
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+
 from src.utils import config as cfg
 from src.utils.config import logger_train as logging
 
