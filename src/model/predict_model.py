@@ -5,6 +5,8 @@ import os
 from src.utils import config as cfg
 import pandas as pd
 import joblib
+from src.utils.config  import logger_predict as logging
+logging.info("Logger loaded")
 
 # Charger le modèle et l'encodeur
 model = joblib.load(os.path.join(cfg.chemin_model, cfg.fichier_model))
@@ -40,4 +42,4 @@ predictions = model.predict(feats_new)
 
 # Affichage des résultats
 predictions_df = pd.DataFrame(predictions, columns=['Predicted AttendanceTimeSeconds'])
-print(predictions_df)
+logging.info(predictions_df)

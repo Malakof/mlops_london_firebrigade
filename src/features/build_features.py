@@ -1,9 +1,12 @@
+import logging
 import os
 
 import pandas as pd
 from pyproj import Transformer
 from src.utils import config as cfg
 from haversine import haversine, Unit
+from src.utils.config  import logger_features as logging
+logging.info("Logger loaded")
 
 def load_data():
     df_incident = pd.read_csv(str(os.path.join(cfg.chemin_data, cfg.fichier_incident)))

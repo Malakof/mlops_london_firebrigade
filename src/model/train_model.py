@@ -10,6 +10,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, max_error
 
 import joblib
+from src.utils.config  import logger_train as logging
+logging.info("Logger loaded")
 
 df_base = pd.read_csv(os.path.join(str(cfg.chemin_data), str(cfg.fichier_global)))
 
@@ -55,8 +57,8 @@ r2 = r2_score(y_test, y_pred)
 mae = mean_absolute_error(y_test, y_pred)
 max_err = max_error(y_test, y_pred)
 
-print(f'{model_name}')
-print(f'- Mean Squared Error: {mse:.4f}')
-print(f'- R2 Score: {r2:.4f}')
-print(f'- Mean Absolute Error: {mae:.4f}')
-print(f'- Max Error: {max_err:.4f}')
+logging.info(f'{model_name}')
+logging.info(f'Mean Squared Error: {mse:.4f}')
+logging.info(f'R2 Score: {r2:.4f}')
+logging.info(f'Mean Absolute Error: {mae:.4f}')
+logging.info(f'Max Error: {max_err:.4f}')

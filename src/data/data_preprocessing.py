@@ -5,23 +5,8 @@ import logging
 import requests
 from tqdm import tqdm
 from src.utils import config as cfg
-
-# Setup logging configuration
-def setup_logging():
-    logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)s - %(levelname)s - %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S',
-                        filename='data_processing.log',  # Store log file in specific location
-                        filemode='w')
-
-    # Adding console handler to also output to console
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
-
-setup_logging()
+from src.utils.config  import logger_data as logging
+logging.info("Logger loaded")
 
 def download_with_progress(url, output_path):
     """Downloads file from a given URL with progress indication."""
