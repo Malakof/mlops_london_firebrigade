@@ -433,42 +433,7 @@ Each component of the project has a dedicated test file located in the `tests` d
 To run all unit tests from the command line, navigate to the root directory of the project and execute the following command:
 ```bash
 python -m unittest discover -s tests
-
-Certainly! Here’s a streamlined documentation outlining the unit test files for your MLOps project, detailing their purpose and how to run these tests both from the command line and via GitHub Actions, all formatted in Markdown.
-
-```markdown
-# Unit Test Documentation
-
-This guide provides an overview of the unit tests for the MLOps project. It lists each test file, explains its purpose, and describes how to run the tests.
-
-## Test Files and Their Purposes
-
-Each component of the project has a dedicated test file located in the `tests` directory at the root of the project. Here’s what each file is responsible for:
-
-### 1. `test_data_processing.py`
-- **Purpose**: Tests functions related to downloading, validating, and preprocessing data. This includes checking file integrity, correct data filtering, and format conversions.
-
-### 2. `test_build_features.py`
-- **Purpose**: Ensures that features are correctly constructed from the processed data. Tests cover data loading, cleaning, merging, and feature calculation.
-
-### 3. `test_train_model.py`
-- **Purpose**: Verifies that the model training process functions correctly. Tests check that the model trains without errors and evaluates the outputs such as model files and performance metrics.
-
-### 4. `test_predict_model.py`
-- **Purpose**: Tests the prediction functionality of the trained model. This includes loading the model, preparing features for prediction, and ensuring that the predictions are accurate.
-
-### 5. `test_api.py`
-- **Purpose**: Ensures that all API endpoints are functioning correctly. Tests check endpoint accessibility, request handling, authentication, and response correctness.
-
-## Running the Tests
-
-### Command Line Execution
-To run all unit tests from the command line, navigate to the root directory of the project and execute the following command:
-
-```bash
-python -m unittest discover -s tests
 ```
-
 This command will discover all test files in the `tests` directory and execute them.
 
 ### Running Tests via GitHub Actions
