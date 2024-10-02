@@ -1,6 +1,7 @@
 import os
 import logging
 import warnings
+from logging import getLogger
 from logging.handlers import RotatingFileHandler
 
 chemin_data = '../../data'
@@ -82,6 +83,8 @@ def setup_logging():
         'predict_model': RotatingFileHandler(os.path.join(log_directory, 'predict_model.log'), LOG_MODE,
                                              maxBytes=1024 * 100, backupCount=5),
         'eval_model': RotatingFileHandler(os.path.join(log_directory, 'eval_model.log'), LOG_MODE,
+                                          maxBytes=1024 * 100, backupCount=5),
+        'api': RotatingFileHandler(os.path.join(log_directory, 'api.log'), LOG_MODE,
                                           maxBytes=1024 * 100, backupCount=5)
     }
 
@@ -91,7 +94,8 @@ def setup_logging():
         'build_features': logging.getLogger('build_features'),
         'train_model': logging.getLogger('train_model'),
         'predict_model': logging.getLogger('predict_model'),
-        'eval_model': logging.getLogger('eval_model')
+        'eval_model': logging.getLogger('eval_model'),
+        'api' : logging.getLogger('api')
     }
 
     for name, logger in loggers.items():
@@ -121,10 +125,11 @@ def setup_logging():
 
     # Return the configured loggers
     return (logging.getLogger('data_preprocessing'), logging.getLogger('build_features'),
-            logging.getLogger('train_model'), logging.getLogger('predict_model'), logging.getLogger('eval_model'))
+            logging.getLogger('train_model'), logging.getLogger('predict_model'), logging.getLogger('eval_model'),
+            logging.getLogger('api'))
 
 # Setup logging and get loggers
-logger_data, logger_features, logger_train, logger_predict, logger_eval = setup_logging()
+logger_data, logger_features, logger_train, logger_predict, logger_eval, logger_api = setup_logging()
 
 # Define a custom warning handler
 def custom_show_warning(message, category, filename, lineno, file=None, line=None):
@@ -141,6 +146,8 @@ def custom_show_warning(message, category, filename, lineno, file=None, line=Non
         logger = logger_predict
     elif 'eval' in filename:
         logger = logger_eval
+    elif 'api' in filename:
+        logger = logger_api
     else:
         logger = logging.getLogger()  # Default to the root logger if no specific logger is found
 

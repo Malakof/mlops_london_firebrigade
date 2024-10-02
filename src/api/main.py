@@ -1,142 +1,176 @@
-import csv
 import os
-import uvicorn
-from fastapi import FastAPI, Depends, HTTPException, status
+from typing import Dict, List
+
+from fastapi import FastAPI, Depends, HTTPException, status, Query, BackgroundTasks
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
-from typing import List, Optional
-import pandas as pd
 
-api = FastAPI()
+from src.data import data_preprocessing
+from src.features import build_features
+from src.model import train_model, predict_model
+from src.utils import config as cfg
+
+from src.utils.config import logger_api as logging
+
+app = FastAPI(title="London Fire Brigade MLOPS API",
+              description="API for London Fire Brigade incident prediction model",
+              version="1.0.0")
 security = HTTPBasic()
 
-# Dictionnaire des utilisateurs pour l'authentification basique
+# Dummy users for authentication
 users = {
-    "alice": "wonderland",
-    "bob": "builder",
-    "clementine": "mandarine"
+    "admin": "fireforce",
+    "user": "london123"
 }
 
-# Modèle Pydantic pour le payload de la requête pour générer un quiz
-class QuizRequest(BaseModel):
-    test_type: str = Field(..., description="Le type de test souhaité, par exemple 'multiple_choice'")
-    categories: List[str] = Field(..., description="Une liste des catégories des questions désirées")
-    number_of_questions: int = Field(..., description="Le nombre de questions à inclure dans le quiz")
 
-# Modèle Pydantic pour le payload de la requête pour créer une question
-class CreateQuestionRequest(BaseModel):
-    question: str = Field(..., description="Le texte de la question à ajouter")
-    subject: str = Field(..., description="Le sujet de la question, par exemple 'geography'")
-    correct: List[str] = Field(..., description="Une liste contenant les réponses correctes")
-    use: str = Field(..., description="Le contexte d'utilisation de la question, par exemple 'exam'")
-    responseA: str = Field(..., description="Texte de la réponse A")
-    responseB: str = Field(..., description="Texte de la réponse B")
-    responseC: str = Field(..., description="Texte de la réponse C")
-    responseD: str = Field(..., description="Texte de la réponse D")
+# Pydantic models for request/response
+class DataProcessingRequest(BaseModel):
+    data_types: List[str] = Field(..., description="List of data types to process: 'incident' or 'mobilisation'")
+    convert_to_pickle: bool = Field(False, description="Whether to convert data to pickle format")
 
-# Modèle Pydantic pour les questions renvoyées
-class Question(BaseModel):
-    question: str = Field(..., description="Le texte de la question posée dans le quiz.")
-    subject: str = Field(..., description="Le sujet ou la catégorie de la question, telle que 'mathématiques' ou 'histoire'.")
-    correct: List[str] = Field(..., description="Liste contenant les réponses correctes à la question.")
-    use: str = Field(..., description="Le contexte d'utilisation de la question, comme 'examen' ou 'entraînement'.")
-    responseA: str = Field(..., description="Première option de réponse multiple.")
-    responseB: str = Field(..., description="Deuxième option de réponse multiple.")
-    responseC: str = Field(..., description="Troisième option de réponse multiple.")
-    responseD: Optional[str] = Field(None, description="Quatrième option de réponse multiple, si applicable.")
+class TrainModelRequest(BaseModel):
+    data_path: str = Field(..., description="Path to the dataset CSV file")
+    model_path: str = Field(..., description="Path to save the trained model")
+    encoder_path: str = Field(..., description="Path to save the encoder")
 
-def extract_user(credentials: HTTPBasicCredentials = Depends(security)):
-    """
-    Extraire le nom d'utilisateur à partir des informations d'identification fournies.
 
-    Args:
-        credentials (HTTPBasicCredentials): L'objet contenant le nom d'utilisateur et le mot de passe.
+class PredictionResponse(BaseModel):
+    predicted_attendance_time: float = Field(..., description="Predicted attendance time in seconds")
 
-    Raise:
-        HTTPException: Si les informations d'identification ne sont pas valides.
-
-    Returns:
-        str: Le nom d'utilisateur extrait.
-    """
+# Authentication function
+def authenticate_user(credentials: HTTPBasicCredentials = Depends(security)):
     username = credentials.username
     password = credentials.password
-
     if users.get(username) != password:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Non autorisé")
-
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )
     return username
 
-@api.get("/")
-async def root():
-    return {"message": "Hello World"}
 
-
-@api.post("/generate_quiz", response_model=List[Question],
-          summary="Génère un quiz basé sur des critères spécifiques",
-          description="Crée un quiz aléatoire basé sur le type, les catégories et le nombre de questions spécifiés.",
-          response_description="Une liste de questions générées aléatoirement selon les critères fournis.")
-async def generate_quiz(request: QuizRequest, username: str = Depends(extract_user)):
+@app.get("/process_data",
+         summary="Process incident or mobilisation data",
+         response_model=Dict[str, str])
+async def process_data(
+        background_tasks: BackgroundTasks,
+        incident: bool = Query(False, description="Whether to process incident data"),
+        mobilisation: bool = Query(False, description="Whether to process mobilisation data"),
+        convert_to_pickle: bool = Query(False, description="Whether to convert processed data to pickle format"),
+        username: str = Depends(authenticate_user)
+):
     try:
-        data = pd.read_csv("questions.csv")
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="Fichier de questions requis non trouvé.")
+        processing_errors = []
 
-    filtered_data = data[(data['use'] == request.test_type) & (data['subject'].isin(request.categories))]
-    if len(filtered_data) < request.number_of_questions:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Pas assez de questions dispos")
+        # Process 'incident' data if set to true
+        if incident:
+            try:
+                background_tasks.add_task(data_preprocessing.process_data, 'incident')
+                logging.info("Started processing incident data.")
+            except Exception as e:
+                processing_errors.append(f"Failed to process incident: {str(e)}")
+                logging.error(f"Error processing incident: {str(e)}")
 
-    selected_questions = filtered_data.sample(n=request.number_of_questions)
-    selected_questions['correct'] = selected_questions['correct'].apply(lambda x: x.split(','))  # Convertit la chaîne en liste
-    selected_questions['responseD'] = selected_questions['responseD'].where(pd.notnull(selected_questions['responseD']), None)
-    selected_questions = selected_questions.to_dict(orient='records')
-    return selected_questions
+        # Process 'mobilisation' data if set to true
+        if mobilisation:
+            try:
+                background_tasks.add_task(data_preprocessing.process_data, 'mobilisation')
+                logging.info("Started processing mobilisation data.")
+            except Exception as e:
+                processing_errors.append(f"Failed to process mobilisation: {str(e)}")
+                logging.error(f"Error processing mobilisation: {str(e)}")
 
-@api.post("/create_question", response_model=dict, status_code=status.HTTP_201_CREATED,
-          summary="Ajoute une nouvelle question au système",
-          description="Permet à un utilisateur authentifié ayant des privilèges administratifs de créer une nouvelle question.",
-          response_description="Un message de confirmation indiquant le succès de la création de la question.")
-async def create_question(request: CreateQuestionRequest, username: str = Depends(extract_user)):
-    # Vérifie si tous les champs requis sont remplis (hormis responseD)
-    if not all([request.question, request.subject, request.correct, request.use, request.responseA, request.responseB, request.responseC]):
-        return {"message": "question vide non ajoutée"}
-    # Prépare les données à être écrites dans le CSV
-    new_question = {
-        "question": request.question,
-        "subject": request.subject,
-        "correct": request.correct,  # Ceci devrait déjà être une liste
-        "use": request.use,
-        "responseA": request.responseA,
-        "responseB": request.responseB,
-        "responseC": request.responseC,
-        "responseD": request.responseD or "",
-    }
+        # Convert to pickle if requested and after processing
+        if convert_to_pickle:
+            file_paths = []
+            if incident:
+                file_paths.append(os.path.join(cfg.chemin_data, cfg.fichier_incident))
+            if mobilisation:
+                file_paths.append(os.path.join(cfg.chemin_data, cfg.fichier_mobilisation))
 
-    # Ajoute la nouvelle question au fichier CSV
-    try:
-        with open("questions.csv", "a", newline='') as file:
-            writer = csv.writer(file)
-            # Prépare les données sous forme de liste pour correspondre aux colonnes CSV
-            row = [
-                new_question['question'],
-                new_question['subject'],
-                new_question['use'],
-                ','.join(new_question['correct']),  # Joint la liste en une chaîne séparée par des virgules
-                new_question['responseA'],
-                new_question['responseB'],
-                new_question['responseC'],
-                new_question['responseD'],
-            ]
-            writer.writerow(row)
-        return {"message": "Question créée avec succès."}
+            output_dir = cfg.chemin_data_ref
+            try:
+                pickle_errors = data_preprocessing.convert_to_pickle(file_paths, output_dir)
+                if pickle_errors:
+                    processing_errors.extend(pickle_errors)
+            except Exception as e:
+                processing_errors.append(f"Failed to convert data to pickle: {str(e)}")
+                logging.error(f"Error in pickle conversion: {str(e)}")
+
+        # Final response based on success or errors
+        if processing_errors:
+            return {"status": "partial success",
+                    "message": f"Processing completed with errors: {processing_errors}"}
+        else:
+            return {"status": "success",
+                    "message": "All data jobs submitted successfully"}
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Question non sauvegardée, erreur: {str(e)}")
+        logging.error(f"Error in data processing: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@api.get("/verify", summary="Vérifie l'état de l'API",
-         description="Vérifie si l'API est opérationnelle et si les fichiers de configuration nécessaires sont présents.",
-         response_description="Un message indiquant si l'API est fonctionnelle ou non.")
-async def verify():
-    required_file_path = "questions.csv"
-    if not os.path.exists(required_file_path):
-        raise HTTPException(status_code=404, detail="Fichier de questions requis non trouvé.")
 
-    return {"message": "L'API est fonctionnelle, fichier de questions trouvé."}
+@app.get("/build_features",
+          summary="Build features from processed data",
+          response_model=Dict[str, str])
+async def build_features_endpoint(username: str = Depends(authenticate_user)):
+    try:
+        build_features.build_features()
+        return {"status": "success", "message": "Features built successfully"}
+    except Exception as e:
+        logging.error(f"Error in feature building: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/train_model",
+          summary="Train the prediction model",
+          response_model=Dict[str, float])
+async def train_model_endpoint(request: TrainModelRequest, username: str = Depends(authenticate_user)):
+    try:
+        metrics = train_model.train_pipeline(request.data_path, request.model_path, request.encoder_path)
+        return metrics
+    except Exception as e:
+        logging.error(f"Error in model training: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/predict",
+          summary="Make a prediction using the trained model",
+          response_model=PredictionResponse)
+async def predict(distance: float = Query(..., description="Distance to the incident in kilometers"),
+            station: str = Query(..., description="Departing station name")):
+    try:
+        if not (distance and station):
+            raise ValueError("Invalid data_type. Distance and/or station missing")
+        prediction = predict_model.make_predict(distance, station)
+        return PredictionResponse(predicted_attendance_time=prediction.iloc[0, 0])
+    except Exception as e:
+        logging.error(f"Error in prediction: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/health",
+         summary="Check the health of the model",
+         response_model=Dict[str, str])
+async def health_check():
+    try:
+        # Check if necessary files exist
+        required_files = [
+            os.path.join(cfg.chemin_data, cfg.fichier_incident),
+            os.path.join(cfg.chemin_data, cfg.fichier_mobilisation),
+            os.path.join(cfg.chemin_model, cfg.fichier_model)
+        ]
+        for file in required_files:
+            if not os.path.exists(file):
+                return {"status": "warning", "message": f"Required file not found: {file}"}
+
+        return {"status": "healthy", "message": "All systems operational"}
+    except Exception as e:
+        logging.error(f"Error in health check: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

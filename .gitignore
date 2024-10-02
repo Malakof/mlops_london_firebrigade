@@ -173,7 +173,7 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 .DS_Store
-
+# TODO: Remove this by removing the files/folders in our own repos
 # Vincent
 dataset/*.csv
 # Richard

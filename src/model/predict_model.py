@@ -74,8 +74,7 @@ def make_predict(distance=1.3, station_de_depart='Acton'):
         prepared_features = _prepare_features(new_data, encoder)
         predictions = model.predict(prepared_features)
         predictions_df = pd.DataFrame(predictions, columns=['Predicted AttendanceTimeSeconds'])
-
-        logging.debug("Prediction completed successfully.")
+        logging.debug(f"Predictions: {predictions},  completed successfully.")
         return predictions_df
     except Exception as e:
         logging.error("Failed to make predictions: " + str(e))
