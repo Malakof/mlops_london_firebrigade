@@ -31,7 +31,7 @@ class DataProcessingRequest(BaseModel):
 
 class TrainModelRequest(BaseModel):
     data_path: str = Field(..., description="Path to the dataset CSV file")
-    model_path: str = Field(..., description="Path to save the trained model")
+    ml_model_path: str = Field(..., description="Path to save the trained model")
     encoder_path: str = Field(..., description="Path to save the encoder")
 
 
@@ -129,7 +129,7 @@ async def build_features_endpoint(username: str = Depends(authenticate_user)):
           response_model=Dict[str, float])
 async def train_model_endpoint(request: TrainModelRequest, username: str = Depends(authenticate_user)):
     try:
-        metrics = train_model.train_pipeline(request.data_path, request.model_path, request.encoder_path)
+        metrics = train_model.train_pipeline(request.data_path, request.ml_model_path, request.encoder_path)
         return metrics
     except Exception as e:
         logging.error(f"Error in model training: {str(e)}")
@@ -145,6 +145,7 @@ async def predict(distance: float = Query(..., description="Distance to the inci
         if not (distance and station):
             raise ValueError("Invalid data_type. Distance and/or station missing")
         prediction = predict_model.make_predict(distance, station)
+        logging.info(f"Predicted attendance time: {prediction} for {distance} km from {station}")
         return PredictionResponse(predicted_attendance_time=prediction.iloc[0, 0])
     except Exception as e:
         logging.error(f"Error in prediction: {str(e)}")

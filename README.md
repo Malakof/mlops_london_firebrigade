@@ -23,12 +23,19 @@ deployment rather than just the model's performance.
         - `train_model.py` - Functions for training the model.
     - **utils/**
         - `config.py` - Configuration settings and paths.
+- **tests/**
+    - `test_data_processing.py` - Unit tests for data downloading and preprocessing functionalities.
+    - `test_build_features.py` - Unit tests for feature engineering processes.
+    - `test_train_model.py` - Unit tests for model training processes.
+    - `test_predict_model.py` - Unit tests for prediction functionalities.
+    - `test_api.py` - Unit tests for API endpoint functionalities.
 
 ### Main Components
 
 #### API (`src/api/main.py`)
 
 - Authentication, data processing, feature building, model training, and prediction endpoints.
+- **Hard coded users for authentication: "admin": "fireforce", "user": "london123"**
 
 #### Data Processing (`src/data/data_preprocessing.py`)
 
@@ -47,6 +54,14 @@ deployment rather than just the model's performance.
 #### Configuration and Logging (`src/utils/config.py`)
 
 - Central configuration for paths, URLs, and logging setup.
+
+#### Unit Tests
+
+- The project includes a comprehensive suite of unit tests located in the `tests` directory. These tests ensure the
+  reliability and accuracy of each component of the system by testing data processing, feature engineering, model
+  training, prediction logic, and API functionalities. The tests are designed to be run automatically via command line
+  or integrated into continuous integration workflows such as GitHub Actions to facilitate continuous testing and
+  validation throughout the development lifecycle.
 
 ## Datas
 
@@ -262,7 +277,7 @@ python train_model.py [options]
    To specify custom paths for the dataset, model, and encoder:
 
    ```bash
-   python train_model.py --data_path '/path/to/data.csv' --model_path '/path/to/model.pkl' --encoder_path '/path/to/encoder.pkl'
+   python train_model.py --data_path '/path/to/data.csv' --ml_model_path '/path/to/model.pkl' --encoder_path '/path/to/encoder.pkl'
    ```
 
 #### API Integration
@@ -299,7 +314,7 @@ specifying paths dynamically.
      -H 'Content-Type: application/json' \
      -d '{
        "data_path": "/path/to/data.csv",
-       "model_path": "/path/to/model.pkl",
+       "ml_model_path": "/path/to/model.pkl",
        "encoder_path": "/path/to/encoder.pkl"
      }'
    ```
@@ -389,6 +404,101 @@ Both the script and API endpoint include comprehensive error handling mechanisms
 during prediction due to model loading failures, data preparation issues, or during the prediction itself are logged and
 reported. This helps maintain high reliability and provides clarity in operational settings.
 
+## Unit Test Documentation
+
+This guide provides an overview of the unit tests for the MLOps project. It lists each test file, explains its purpose, and describes how to run the tests.
+
+### Test Files and Their Purposes
+
+Each component of the project has a dedicated test file located in the `tests` directory at the root of the project. Here’s what each file is responsible for:
+
+#### 1. `test_data_processing.py`
+- **Purpose**: Tests functions related to downloading, validating, and preprocessing data. This includes checking file integrity, correct data filtering, and format conversions.
+
+#### 2. `test_build_features.py`
+- **Purpose**: Ensures that features are correctly constructed from the processed data. Tests cover data loading, cleaning, merging, and feature calculation.
+
+#### 3. `test_train_model.py`
+- **Purpose**: Verifies that the model training process functions correctly. Tests check that the model trains without errors and evaluates the outputs such as model files and performance metrics.
+
+#### 4. `test_predict_model.py`
+- **Purpose**: Tests the prediction functionality of the trained model. This includes loading the model, preparing features for prediction, and ensuring that the predictions are accurate.
+
+#### 5. `test_api.py`
+- **Purpose**: Ensures that all API endpoints are functioning correctly. Tests check endpoint accessibility, request handling, authentication, and response correctness.
+
+### Running the Tests
+
+#### Command Line Execution
+To run all unit tests from the command line, navigate to the root directory of the project and execute the following command:
+```bash
+python -m unittest discover -s tests
+
+Certainly! Here’s a streamlined documentation outlining the unit test files for your MLOps project, detailing their purpose and how to run these tests both from the command line and via GitHub Actions, all formatted in Markdown.
+
+```markdown
+# Unit Test Documentation
+
+This guide provides an overview of the unit tests for the MLOps project. It lists each test file, explains its purpose, and describes how to run the tests.
+
+## Test Files and Their Purposes
+
+Each component of the project has a dedicated test file located in the `tests` directory at the root of the project. Here’s what each file is responsible for:
+
+### 1. `test_data_processing.py`
+- **Purpose**: Tests functions related to downloading, validating, and preprocessing data. This includes checking file integrity, correct data filtering, and format conversions.
+
+### 2. `test_build_features.py`
+- **Purpose**: Ensures that features are correctly constructed from the processed data. Tests cover data loading, cleaning, merging, and feature calculation.
+
+### 3. `test_train_model.py`
+- **Purpose**: Verifies that the model training process functions correctly. Tests check that the model trains without errors and evaluates the outputs such as model files and performance metrics.
+
+### 4. `test_predict_model.py`
+- **Purpose**: Tests the prediction functionality of the trained model. This includes loading the model, preparing features for prediction, and ensuring that the predictions are accurate.
+
+### 5. `test_api.py`
+- **Purpose**: Ensures that all API endpoints are functioning correctly. Tests check endpoint accessibility, request handling, authentication, and response correctness.
+
+## Running the Tests
+
+### Command Line Execution
+To run all unit tests from the command line, navigate to the root directory of the project and execute the following command:
+
+```bash
+python -m unittest discover -s tests
+```
+
+This command will discover all test files in the `tests` directory and execute them.
+
+### Running Tests via GitHub Actions
+To run these tests automatically via GitHub Actions, include the following steps in your `.github/workflows/main.yml` file:
+NOT TESTED
+```yaml
+name: Python application
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          python -m unittest discover -s tests
+```
+
+This workflow configures GitHub Actions to install Python, install all necessary dependencies, and then run the unit tests whenever changes are pushed or pull requests are made to the repository.
+
 ## Logging Framework Documentation
 
 This guide provides an overview of the logging framework implemented within the project. The logging setup is designed
@@ -461,15 +571,20 @@ The logging framework is integrated throughout the application code, with logger
 component. Developers can easily add new log messages or adjust logging levels as needed to enhance diagnostics or
 handle new features.
 
-Here's a detailed documentation for the `config.py` script in your project, focusing on the parameters it manages. This guide is formatted in Markdown to facilitate integration into your project documentation.
+Here's a detailed documentation for the `config.py` script in your project, focusing on the parameters it manages. This
+guide is formatted in Markdown to facilitate integration into your project documentation.
 
 ## Configuration Parameters Guide
 
-This guide outlines the parameters defined in the `config.py` file used throughout the project. The `config.py` script centralizes configuration settings, providing a single point of reference for managing paths, URLs, and other system-wide settings. This approach ensures that changes to the configuration are reflected across all components of the application.
+This guide outlines the parameters defined in the `config.py` file used throughout the project. The `config.py` script
+centralizes configuration settings, providing a single point of reference for managing paths, URLs, and other
+system-wide settings. This approach ensures that changes to the configuration are reflected across all components of the
+application.
 
 ### Overview of Configuration Parameters
 
-The `config.py` file contains various parameters used by different modules for tasks such as data handling, logging, and API configuration. Below is a detailed explanation of each parameter:
+The `config.py` file contains various parameters used by different modules for tasks such as data handling, logging, and
+API configuration. Below is a detailed explanation of each parameter:
 
 #### Data and Model Paths
 
@@ -490,7 +605,8 @@ The `config.py` file contains various parameters used by different modules for t
 - `fichier_calendrier`: Calendar file name, not specifically detailed in usage.
 - `fichier_vehicle`: Vehicle data file name, not detailed in usage.
 - `fichier_global`: Global data file that may be used for combined datasets or outputs.
-- `fichier_model`: The default file name for storing the trained model, typically a `.pkl` file like `linear_regression_model.pkl`.
+- `fichier_model`: The default file name for storing the trained model, typically a `.pkl` file like
+  `linear_regression_model.pkl`.
 
 #### Logging Configuration
 
@@ -512,9 +628,13 @@ The `config.py` file contains various parameters used by different modules for t
 #### Logging Levels and Modes
 
 - `LOG_MODE`: Defines the file mode for log files, typically set to 'a' for appending.
-- `DEFAULT_LEVEL`, `CONSOLE_LEVEL`, and `HISTORY_LEVEL`: Define the logging levels used across different outputs (file, console, and historical logs).
+- `DEFAULT_LEVEL`, `CONSOLE_LEVEL`, and `HISTORY_LEVEL`: Define the logging levels used across different outputs (file,
+  console, and historical logs).
 
 ### Usage
 
-These parameters are utilized across various scripts to standardize the data paths, file names, and other operational settings, making it easier to maintain and modify the system as needed. For instance, changing the `chemin_data` will automatically update the data paths in all scripts that import this configuration, facilitating easy relocations of data storage without modifying each script individually.
+These parameters are utilized across various scripts to standardize the data paths, file names, and other operational
+settings, making it easier to maintain and modify the system as needed. For instance, changing the `chemin_data` will
+automatically update the data paths in all scripts that import this configuration, facilitating easy relocations of data
+storage without modifying each script individually.
 

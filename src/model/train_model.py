@@ -139,7 +139,7 @@ def main():
     parser = argparse.ArgumentParser(description="Train and evaluate a machine learning model with given dataset.")
     parser.add_argument('--data_path', type=str, help='Path to the dataset CSV file',
                         default=os.path.join(cfg.chemin_data, cfg.fichier_global))
-    parser.add_argument('--model_path', type=str, help='Path to save the trained model',
+    parser.add_argument('--ml_model_path', type=str, help='Path to save the trained model',
                         default=os.path.join(cfg.chemin_model, cfg.fichier_model))
     parser.add_argument('--encoder_path', type=str, help='Path to save the encoder',
                         default=os.path.join(cfg.chemin_model, 'onehot_encoder.pkl'))

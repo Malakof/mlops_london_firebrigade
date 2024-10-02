@@ -44,7 +44,7 @@ test_train_model() {
     -H 'Content-Type: application/json' \
     -d '{
     "data_path": "../../data/global_data.csv",
-    "model_path": "../../models/linear_regression_model.pkl",
+    "ml_model_path": "../../models/linear_regression_model.pkl",
     "encoder_path": "../../models/onehot_encoder.pkl"
   }'
   echo -e "\n"
