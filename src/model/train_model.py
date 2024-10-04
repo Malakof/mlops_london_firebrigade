@@ -145,7 +145,7 @@ def main():
                         default=os.path.join(cfg.chemin_model, 'onehot_encoder.pkl'))
 
     args = parser.parse_args()
-    train_pipeline(args.data_path, args.model_path, args.encoder_path)
+    train_pipeline(args.data_path, args.ml_model_path, args.encoder_path)
 
 
 if __name__ == "__main__":
