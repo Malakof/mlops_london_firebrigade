@@ -1,5 +1,7 @@
 import argparse
 import os
+import warnings
+from time import time
 
 import joblib
 import pandas as pd
@@ -9,9 +11,28 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 
 from src.utils import config as cfg
-from src.utils.config import logger_train as logging
+from src.utils.config import LoggingMetricsManager
+
+# Get the logger for model training
+logging = LoggingMetricsManager().metrics_loggers['train_model']
+logging.info("train_model Logger loaded")
 
 
+# FOR TESTING
+# logging.error("TEST ERROR")
+# logging.warning("TEST ERROR")
+# logging.info("TEST INFO")
+# logging.debug("TEST DEBUG")
+# logging.critical("TEST CRITICAL")
+
+# Generate a warning to test
+# warnings.warn("This is a train_model TEST warning", UserWarning)
+MSE_METRIC = 'mse'
+R2_SCORE_METRIC = 'r2_score'
+MAE_METRIC = 'mae'
+MAX_ERROR_METRIC = 'max_error'
+DATA_SIZE_METRIC = 'original_data_size'
+PROCESSED_DATA_SIZE_METRIC = 'processed_data_size'
 def _load_data(filepath):
     """
     Load dataset from a CSV file.
@@ -22,8 +43,10 @@ def _load_data(filepath):
     Returns:
         DataFrame: The loaded dataset.
     """
-    logging.info("Loading data from file.")
-    return pd.read_csv(filepath)
+    start_time = time()
+    df = pd.read_csv(filepath)
+    logging.info("Loading data from file.", metrics={DATA_SIZE_METRIC: df.memory_usage(deep=True).sum()})
+    return df
 
 
 def _preprocess_data(df):
@@ -45,7 +68,9 @@ def _preprocess_data(df):
     encoded_categorical = encoder.fit_transform(df[categorical_features]).toarray()
     encoded_df = pd.DataFrame(encoded_categorical, columns=encoder.get_feature_names_out(categorical_features))
 
-    return pd.concat([df[numeric_features].reset_index(drop=True), encoded_df.reset_index(drop=True)], axis=1), encoder
+    processed_data = pd.concat([df[numeric_features].reset_index(drop=True), encoded_df.reset_index(drop=True)], axis=1)
+    logging.info("Data preprocessing completed.", metrics={PROCESSED_DATA_SIZE_METRIC: processed_data.memory_usage(deep=True).sum()})
+    return processed_data, encoder
 
 
 def _train_model(features, target):
@@ -81,10 +106,10 @@ def _evaluate_model(model, X_test, y_test):
     logging.info("Evaluating model.")
     y_pred = model.predict(X_test)
     metrics = {
-        'MSE': mean_squared_error(y_test, y_pred),
-        'R2 Score': r2_score(y_test, y_pred),
-        'MAE': mean_absolute_error(y_test, y_pred),
-        'Max Error': max_error(y_test, y_pred)
+        MSE_METRIC: mean_squared_error(y_test, y_pred),
+        R2_SCORE_METRIC: r2_score(y_test, y_pred),
+        MAE_METRIC: mean_absolute_error(y_test, y_pred),
+        MAX_ERROR_METRIC: max_error(y_test, y_pred)
     }
     return metrics
 
@@ -126,13 +151,14 @@ def train_pipeline(data_path, model_path, encoder_path):
         processed_feats, encoder = _preprocess_data(feats)
         model, X_train, X_test, y_train, y_test = _train_model(processed_feats, target)
         metrics = _evaluate_model(model, X_test, y_test)
-        logging.info(f"Model Evaluation Metrics: {metrics}")
+        logging.info(f"Model Evaluation Metrics: {metrics}", metrics=metrics)
         _save_model(model, encoder, model_path, encoder_path)
         return metrics
     except Exception as e:
         error_msg = f"An error occurred during the pipeline execution: {e}"
         logging.error(error_msg)
         raise Exception(error_msg)
+
 
 def main():
     """Main function to handle command-line arguments and initiate the ML pipeline."""
@@ -145,7 +171,7 @@ def main():
                         default=os.path.join(cfg.chemin_model, 'onehot_encoder.pkl'))
 
     args = parser.parse_args()
-    train_pipeline(args.data_path, args.model_path, args.encoder_path)
+    train_pipeline(args.data_path, args.ml_model_path, args.encoder_path)
 
 
 if __name__ == "__main__":

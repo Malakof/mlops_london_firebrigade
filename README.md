@@ -406,39 +406,58 @@ reported. This helps maintain high reliability and provides clarity in operation
 
 ## Unit Test Documentation
 
-This guide provides an overview of the unit tests for the MLOps project. It lists each test file, explains its purpose, and describes how to run the tests.
+This guide provides an overview of the unit tests for the MLOps project. It lists each test file, explains its purpose,
+and describes how to run the tests.
 
 ### Test Files and Their Purposes
 
-Each component of the project has a dedicated test file located in the `tests` directory at the root of the project. Here’s what each file is responsible for:
+Each component of the project has a dedicated test file located in the `tests` directory at the root of the project.
+Here’s what each file is responsible for:
 
 #### 1. `test_data_processing.py`
-- **Purpose**: Tests functions related to downloading, validating, and preprocessing data. This includes checking file integrity, correct data filtering, and format conversions.
+
+- **Purpose**: Tests functions related to downloading, validating, and preprocessing data. This includes checking file
+  integrity, correct data filtering, and format conversions.
 
 #### 2. `test_build_features.py`
-- **Purpose**: Ensures that features are correctly constructed from the processed data. Tests cover data loading, cleaning, merging, and feature calculation.
+
+- **Purpose**: Ensures that features are correctly constructed from the processed data. Tests cover data loading,
+  cleaning, merging, and feature calculation.
 
 #### 3. `test_train_model.py`
-- **Purpose**: Verifies that the model training process functions correctly. Tests check that the model trains without errors and evaluates the outputs such as model files and performance metrics.
+
+- **Purpose**: Verifies that the model training process functions correctly. Tests check that the model trains without
+  errors and evaluates the outputs such as model files and performance metrics.
 
 #### 4. `test_predict_model.py`
-- **Purpose**: Tests the prediction functionality of the trained model. This includes loading the model, preparing features for prediction, and ensuring that the predictions are accurate.
+
+- **Purpose**: Tests the prediction functionality of the trained model. This includes loading the model, preparing
+  features for prediction, and ensuring that the predictions are accurate.
 
 #### 5. `test_api.py`
-- **Purpose**: Ensures that all API endpoints are functioning correctly. Tests check endpoint accessibility, request handling, authentication, and response correctness.
+
+- **Purpose**: Ensures that all API endpoints are functioning correctly. Tests check endpoint accessibility, request
+  handling, authentication, and response correctness.
 
 ### Running the Tests
 
 #### Command Line Execution
-To run all unit tests from the command line, navigate to the root directory of the project and execute the following command:
+
+To run all unit tests from the command line, navigate to the root directory of the project and execute the following
+command:
+
 ```bash
 python -m unittest discover -s tests
 ```
+
 This command will discover all test files in the `tests` directory and execute them.
 
 ### Running Tests via GitHub Actions
-To run these tests automatically via GitHub Actions, include the following steps in your `.github/workflows/main.yml` file:
+
+To run these tests automatically via GitHub Actions, include the following steps in your `.github/workflows/main.yml`
+file:
 NOT TESTED
+
 ```yaml
 name: Python application
 
@@ -462,7 +481,8 @@ jobs:
           python -m unittest discover -s tests
 ```
 
-This workflow configures GitHub Actions to install Python, install all necessary dependencies, and then run the unit tests whenever changes are pushed or pull requests are made to the repository.
+This workflow configures GitHub Actions to install Python, install all necessary dependencies, and then run the unit
+tests whenever changes are pushed or pull requests are made to the repository.
 
 ## Logging Framework Documentation
 
@@ -602,4 +622,193 @@ These parameters are utilized across various scripts to standardize the data pat
 settings, making it easier to maintain and modify the system as needed. For instance, changing the `chemin_data` will
 automatically update the data paths in all scripts that import this configuration, facilitating easy relocations of data
 storage without modifying each script individually.
+
+## Prometheus Metrics Logging
+### Overview
+This project implements metrics logging using Prometheus and Pushgateway to monitor the performance and status of various scripts involved in data processing, model training, and prediction. Each script utilizes the MetricsLogger class from config.py to record and push metrics to a Pushgateway, which are then scraped by a Prometheus server for monitoring and analysis.
+
+The metrics logging implemented in this project provides valuable insights into the operation of each script, aiding in monitoring, debugging, and optimizing the data processing and machine learning workflows. By pushing these metrics to a Prometheus server via Pushgateway, we can visualize and analyze the performance and status of our system in real-time.
+
+#### Implementation Details
+
+- Pushgateway Integration:
+
+Each run of a script generates metrics that are pushed in a batch to the Pushgateway, from where the Prometheus server picks them up.
+
+- Configuration:
+
+`PUSHGATEWAY_URL` in `config.py` sets the URL of the Pushgateway.
+`PUSH_GETAWAY_ENABLED` in `config.py` enables or disables the metrics logging.
+
+Logging and Metrics: The MetricsLogger class extends the standard logging functionality to include metrics logging. Each log message can optionally include associated metrics that are recorded and pushed to the Pushgateway.
+
+### Setup
+
+Step 0: Make sure `PUSH_GETAWAY_ENABLED` is set to `True` and `PUSHGATEWAY_URL` address and port is correct
+
+Step 1: Run pushgateway through docker
+
+```bash
+docker pull prom/pushgateway  
+# check ports
+docker run -d -p 9091:9091 prom/pushgateway
+```
+Step 2: Access pushgateway by naviagting batchs history: http://localhost:9091/#
+and metrics list: http://localhost:9091/#metrics
+
+Step 3: Run Prometheus locally (needs install before) with the command **(TEMPORARY UNTIL DOCKERISATION IS DONE)**:
+```bash
+prometheus --config.file=/your_path_to/mlops_london_firebrigade/scripts/prometheus.yml --storage.tsdb.path=/your_path_to/mlops_london_firebrigade/data/prometheus
+```
+Step 4: Access Prometheus
+Once prometheus is running, you can access the Prometheus web UI by navigating to:
+http://localhost:9090
+
+From here, you can run all the scripts and use the Prometheus Expression Browser to run queries and view metrics being scraped by Prometheus during the batchs executions.
+
+### Common Metrics
+
+All scripts share common metrics related to logging at different severity levels. These metrics are counters that keep track of the number of log messages of each severity level encountered during a script run. This helps in monitoring the frequency and severity of events occurring in each script.
+
+#### Log Message Counters:
+- Metric Names: `{log_level}_logs_{module}`
+- `log_level`: The severity level of the log message (info, warning, error, debug, critical).
+- `module`: The name of the script/module (e.g., data_preprocessing, train_model).
+- Metric Type: Counter
+- Description: Counts the number of log messages at a specific severity level for each script.
+
+**Note: Every time a log message is recorded, the corresponding counter metric is incremented, regardless of whether additional metrics are provided. The detailed messages are written to log files for reference in case of errors during batch processing.**
+
+### Script-Specific Metrics
+
+Each script may define additional metrics relevant to its specific operations. These metrics are defined through constants at the top of each script with a _METRIC suffix and are recorded using the optional metrics parameter of the MetricsLogger.
+
+Below is a comprehensive list of all metrics logged by each script during a batch run, including the constants used, the resulting Prometheus metric names, their types, and detailed descriptions.
+
+#### 1. data_preprocessing.py
+
+Special Note: Some metrics in this script are dynamically named based on the data type (incident or mobilisation), resulting in separate metrics for each.
+
+##### SUCCESS_PROCESSING_INCIDENT_DATA_METRIC
+- **Metric Names:**`success_incident_data_preprocessing`
+- **Metric Type:** Gauge
+- **Description:** Indicates whether the processing of incident data was successful (1 for success, 0 for failure).
+##### SUCCESS_PROCESSING_MOBILISATION_DATA_METRIC
+- **Metric Names:** `success_mobilisation_data_preprocessing`
+- **Metric Type:** Gauge
+- **Description:** Indicates whether the processing of mobilisation data was successful (1 for success, 0 for failure).
+##### DOWNLOAD_SIZE_METRIC
+- **Metric Names:** `download_size_in_bytes_{filename}_data_preprocessing`
+- **Metric Type:** Gauge
+- **Description:** Total size in bytes of the file to be downloaded for a specific data type (incident or mobilisation).
+##### DOWNLOADED_BYTES_METRIC
+- **Metric Names:** `downloaded_bytes_{filename}_data_preprocessing`
+- **Metric Type:** Gauge
+- **Description:** Number of bytes actually downloaded for a specific data type.
+##### EXPECTED_BYTES_METRIC
+- **Metric Names:** `expected_bytes_{filename}_data_preprocessing`
+- **Metric Type:** Gauge
+- **Description:** Expected number of bytes to be downloaded for a specific data type.
+##### INITIAL_COUNT
+- **Metric Names:** `initial_count_{filename}_data_preprocessing`
+- **Metric Type:** Gauge
+- **Description:** Number of records in the dataset before filtering for a specific data type.
+##### FILTERED_COUNT
+- **Metric Names:** `filtered_count_{filename}_data_preprocessing`
+- **Metric Type:** Gauge
+- **Description:** Number of records in the dataset after filtering for a specific data type.
+##### RECORDS_SAVED
+- **Metric Names:** `record_saved_{filename}_data_preprocessing`
+- **Metric Type:** Gauge
+- **Description:** Number of records saved to the CSV file for a specific data type.
+##### DOWNLOAD_DURATION_METRIC
+- **Metric Names:** `download_duration_seconds_{filename}_data_preprocessing`
+- **Metric Type:** Gauge
+- **Description:** Duration in seconds taken to download the file for a specific data type.
+##### FILTER_DURATION_METRIC
+- **Metric Names:** `filter_duration_seconds_{filename}_data_preprocessing`
+- **Metric Type:** Gauge
+- **Description:** Duration in seconds taken to filter the data for a specific data type.
+
+Note:** {filename} is derived from the URL or filepath, sanitized to create a valid metric name, and typically corresponds to the data type (e.g., LFB_Incident for incident data).
+
+#### 2. build_features.py
+
+##### INCIDENT_ROWS_METRIC
+- **Metric Name:** `incident_rows_build_features`
+- **Metric Type:** Gauge
+- **Description:** Number of incident data rows loaded before cleaning.
+##### MOBILISATION_ROWS_METRIC
+- **Metric Name:** `mobilisation_rows_build_features`
+- **Metric Type:** Gauge
+- **Description:** Number of mobilisation data rows loaded before cleaning.
+##### STATION_ROWS_METRIC
+- **Metric Name:** `station_rows_build_features`
+- **Metric Type:** Gauge
+- **Description:** Number of station data rows loaded.
+##### INCIDENT_CLEANED_ROWS_METRIC
+- **Metric Name:** `incident_cleaned_rows_build_features`
+- **Metric Type:** Gauge
+- **Description:** Number of incident data rows after cleaning.
+##### MOBILISATION_CLEANED_ROWS_METRIC
+- **Metric Name:** `mobilisation_cleaned_rows_build_features`
+- **Metric Type:** Gauge
+- **Description:** Number of mobilisation data rows after cleaning.
+##### SAVED_FILE_SIZE_METRIC
+- **Metric Name:** `saved_file_size_build_features`
+- **Metric Type:** Gauge
+- **Description:** Size in bytes of the saved merged dataset CSV file.
+##### SUCCESS_METRIC
+- **Metric Name:** `success_build_features`
+- **Metric Type:** Gauge
+- **Description:** Indicates whether the feature building process was successful (1 for success, 0 for failure).
+
+#### 3. train_model.py
+
+##### DATA_SIZE_METRIC
+- **Metric Name:** `original_data_size_train_model`
+- **Metric Type:** Gauge
+- **Description:** Size in bytes of the original dataset loaded for training.
+##### PROCESSED_DATA_SIZE_METRIC
+- **Metric Name:** `processed_data_size_train_model`
+- **Metric Type:** Gauge
+- **Description:** Size in bytes of the dataset after preprocessing.
+##### MSE_METRIC
+- **Metric Name:** `mse_train_model`
+- **Metric Type:** Gauge
+- **Description:** Mean Squared Error of the model on the test dataset.
+##### R2_SCORE_METRIC
+- **Metric Name:** `r2_score_train_model`
+- **Metric Type:** Gauge
+- **Description:** R-squared score (coefficient of determination) of the model on the test dataset.
+##### MAE_METRIC
+- **Metric Name:** `mae_train_model`
+- **Metric Type:** Gauge
+- **Description:** Mean Absolute Error of the model on the test dataset.
+##### MAX_ERROR_METRIC
+- **Metric Name:** `max_error_train_model`
+- **Metric Type:** Gauge
+- **Description:** Maximum residual error of the model on the test dataset.
+
+#### 4. predict_model.py
+
+##### NUM_FEATURES_METRIC
+- **Metric Name:** `num_features_predict_model`
+- **Metric Type:** Gauge
+- **Description:** Total number of features used for making the prediction.
+##### NUM_PREDICTIONS_METRIC
+- **Metric Name:** `prediction_result_predict_model`
+- **Metric Type:** Gauge
+- **Description:** The predicted attendance time in seconds.
+##### SUCCESS_METRIC
+- **Metric Name:** `success_predict_model`
+- **Metric Type:** Gauge
+- **Description:** Indicates whether the prediction process was successful (1 for success, 0 for failure).
+
+#### 5. api/main.py
+
+While the API script primarily handles HTTP requests and orchestrates calls to other scripts, it also utilizes the MetricsLogger to record log message counters. Additional metrics can be added as needed to monitor API-specific events.
+
+
+
 

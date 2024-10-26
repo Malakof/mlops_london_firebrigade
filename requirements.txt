@@ -116,3 +116,6 @@ python-json-logger~=2.0.7
 prometheus_client~=0.21.0
 jupyter_server_terminals~=0.5.3
 json5~=0.9.25
+rich~=13.9.3
+markdown-it-py~=3.0.0
+mdurl~=0.1.2

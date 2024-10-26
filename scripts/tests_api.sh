@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# export PYTHONPATH="/Users/richard/Code/mlops_london_firebrigade:$PYTHONPATH"
 # Fichier shell pour tester l'API FastAPI
 
 test_health() {

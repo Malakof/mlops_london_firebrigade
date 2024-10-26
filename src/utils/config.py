@@ -1,7 +1,8 @@
-import os
 import logging
+import os
+import uuid
 import warnings
-from logging import getLogger
+from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
 chemin_data = '../../data'
@@ -65,101 +66,180 @@ LOG_MODE = 'a'
 DEFAULT_LEVEL = logging.DEBUG
 CONSOLE_LEVEL = logging.DEBUG
 HISTORY_LEVEL = logging.DEBUG
+from prometheus_client import CollectorRegistry
 
-def setup_logging():
-    # Define the format for the log messages
-    log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    date_format = '%Y-%m-%d %H:%M:%S'
-    formatter = logging.Formatter(log_format, datefmt=date_format)
+PUSH_GETAWAY_ENABLED = False
+PUSHGATEWAY_URL = 'http://localhost:9091'
 
-    # Create rotating handlers for each logger with specific log files
-    handlers = {
-        'data_preprocessing': RotatingFileHandler(os.path.join(log_directory, 'data_preprocessing.log'), LOG_MODE,
-                                               maxBytes=1024 * 100, backupCount=5),  # 5 MB per file, keep 5 backups
-        'build_features': RotatingFileHandler(os.path.join(log_directory, 'build_features.log'), LOG_MODE,
-                                                 maxBytes=1024 * 100, backupCount=5),
-        'train_model': RotatingFileHandler(os.path.join(log_directory, 'train_model.log'), LOG_MODE,
-                                              maxBytes=1024 * 100, backupCount=5),
-        'predict_model': RotatingFileHandler(os.path.join(log_directory, 'predict_model.log'), LOG_MODE,
-                                             maxBytes=1024 * 100, backupCount=5),
-        'eval_model': RotatingFileHandler(os.path.join(log_directory, 'eval_model.log'), LOG_MODE,
-                                          maxBytes=1024 * 100, backupCount=5),
-        'api': RotatingFileHandler(os.path.join(log_directory, 'api.log'), LOG_MODE,
-                                          maxBytes=1024 * 100, backupCount=5)
-    }
+# Metrics definitions
+registry = CollectorRegistry(auto_describe=True)
 
-    # Configure each logger
-    loggers = {
-        'data_preprocessing': logging.getLogger('data_preprocessing'),
-        'build_features': logging.getLogger('build_features'),
-        'train_model': logging.getLogger('train_model'),
-        'predict_model': logging.getLogger('predict_model'),
-        'eval_model': logging.getLogger('eval_model'),
-        'api' : logging.getLogger('api')
-    }
+from prometheus_client import push_to_gateway, Gauge, Counter, Histogram, CollectorRegistry
 
-    for name, logger in loggers.items():
-        logger.setLevel(DEFAULT_LEVEL)  # Set the default level
-        handler = handlers[name]
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        logger.propagate = True  # Prevent log messages from being propagated to the root logger
 
-    # Console handler
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(CONSOLE_LEVEL)  # Set log level for console
-    console_handler.setFormatter(formatter)
+class MetricsLogger:
+    def __init__(self, logger, module, registry=None, pushgateway_enabled=False):
+        self.logger = logger
+        self.module = module
+        self.registry = registry or CollectorRegistry(auto_describe=True)
+        self.pushgateway_enabled = pushgateway_enabled
+        self.metrics_dict = {}  # Dictionary to store metrics
+        self.job_id = f"{datetime.now().strftime('%y%m%d-%H%M%S')}_{uuid.uuid4()}"  # Unique job ID for each instance
 
-    # Rotating file handler for root logger history
-    rotating_handler = RotatingFileHandler(
-        os.path.join(log_directory, 'history.log'), LOG_MODE, maxBytes=1024 * 1024 * 1,
-        backupCount=5)  # 1 MB per file, keep 5 old copies
-    rotating_handler.setLevel(HISTORY_LEVEL)  # Set log level for file
-    rotating_handler.setFormatter(formatter)
+    def _create_metric(self, name, metric_type, description):
+        """Create or retrieve a Prometheus metric, ensuring names are compliant with Prometheus conventions."""
+        metric_name = f"{name}_{self.module}".lower()
+        if metric_name not in self.metrics_dict:
+            try:
+                metric = metric_type(metric_name, description, ['module'], registry=self.registry)
+                self.metrics_dict[metric_name] = metric
+            except ValueError as e:
+                if 'Duplicated' in str(e):
+                    logging.warning(
+                        f"Duplicate metric registration attempted for {metric_name}. Using existing metric.")
+                else:
+                    raise
+        return self.metrics_dict[metric_name]
 
-    # Get the root logger and add the handlers
-    root_logger = logging.getLogger()
-    root_logger.setLevel(DEFAULT_LEVEL)  # Set the lowest log level to handle
-    root_logger.addHandler(console_handler)
-    root_logger.addHandler(rotating_handler)
+    def _push_metrics(self):
+        push_to_gateway(PUSHGATEWAY_URL, job=f'{self.module}_{self.job_id}', registry=self.registry)
 
-    # Return the configured loggers
-    return (logging.getLogger('data_preprocessing'), logging.getLogger('build_features'),
-            logging.getLogger('train_model'), logging.getLogger('predict_model'), logging.getLogger('eval_model'),
-            logging.getLogger('api'))
+    def log(self, level, message, metrics=None, metric_types=None):
+        getattr(self.logger, level.lower())(message)
+        log_metric_name = f"{level.lower()}_logs"
+        logs_metric = self._create_metric(log_metric_name, Counter, f"Number of {level.lower()} level logs").labels(
+            module=self.module)
+        logs_metric.inc()
 
-# Setup logging and get loggers
-logger_data, logger_features, logger_train, logger_predict, logger_eval, logger_api = setup_logging()
+        if metrics:
+            if metric_types is None:
+                metric_types = ['Gauge'] * len(metrics)  # Default to Gauge if no types provided
+            for (metric_name, value), m_type in zip(metrics.items(), metric_types):
+                metric_class = {
+                    'Counter': Counter,
+                    'Gauge': Gauge,
+                    'Histogram': Histogram
+                }.get(m_type, Gauge)  # Default to Gauge if unknown type
+                metric = self._create_metric(metric_name, metric_class, f"{m_type} for {metric_name}")
+                if m_type == 'Histogram':
+                    metric.labels(module=self.module).observe(value)
+                else:
+                    metric.labels(module=self.module).set(value)
 
-# Define a custom warning handler
+        if self.pushgateway_enabled:
+            self._push_metrics()
+
+    # Define convenience methods for each log level
+    def info(self, message, metrics=None, metric_types=None):
+        self.log('info', message, metrics, metric_types)
+
+    def warning(self, message, metrics=None, metric_types=None):
+        self.log('warning', message, metrics, metric_types)
+
+    def error(self, message, metrics=None, metric_types=None):
+        self.log('error', message, metrics, metric_types)
+
+    def debug(self, message, metrics=None, metric_types=None):
+        self.log('debug', message, metrics, metric_types)
+
+    def critical(self, message, metrics=None, metric_types=None):
+        self.log('critical', message, metrics, metric_types)
+
+
 def custom_show_warning(message, category, filename, lineno, file=None, line=None):
+    # Access the singleton instance of LoggingMetricsManager
+    logging_manager = LoggingMetricsManager()  # This will fetch the existing initialized instance
+    metrics_loggers = logging_manager.metrics_loggers
+
     log_message = f"{filename}:{lineno}: {category.__name__}: {message}"
 
-    # Example: Decide based on the filename which logger to use
+    # Determine which logger to use based on the filename
     if 'features' in filename:
-        logger = logger_features
+        logger_key = 'build_features'
     elif 'data' in filename:
-        logger = logger_data
+        logger_key = 'data_preprocessing'
     elif 'train' in filename:
-        logger = logger_train
+        logger_key = 'train_model'
     elif 'predict' in filename:
-        logger = logger_predict
+        logger_key = 'predict_model'
     elif 'eval' in filename:
-        logger = logger_eval
+        logger_key = 'eval_model'
     elif 'api' in filename:
-        logger = logger_api
+        logger_key = 'api'
     else:
-        logger = logging.getLogger()  # Default to the root logger if no specific logger is found
+        logger_key = None  # Fall back to a default logger if none of the conditions match
 
-    # Log to the specific logger
-    logger.warning(log_message)
+    # Get the appropriate logger from the metrics_loggers dictionary
+    logger = metrics_loggers.get(logger_key, logging.getLogger())  # Fallback to the root logger
+
+    # Log the warning message using the appropriate MetricsLogger
+    if logger:
+        logger.warning(log_message)
 
     # Also log to the root logger
     root_logger = logging.getLogger()
 
 
-# Set the custom warning handler
+# Set the custom warning handler globally for all warnings
 warnings.showwarning = custom_show_warning
 
-# Generate a warning to test
-# warnings.warn("This is a TEST warning", UserWarning)
+
+class SingletonMeta(type):
+    """ A metaclass for creating a Singleton base class. """
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
+class LoggingMetricsManager(metaclass=SingletonMeta):
+    def __init__(self):
+        # clear_prometheus_registry()
+        if not hasattr(self, 'initialized'):  # This check prevents reinitialization
+            self.log_directory = log_directory
+            self.registry = CollectorRegistry()
+            self.metrics_loggers = self.setup_logging()
+            self.initialized = True
+
+    def setup_logging(self):
+        log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        date_format = '%Y-%m-%d %H:%M:%S'
+        formatter = logging.Formatter(log_format, datefmt=date_format)
+
+        modules = ['train_model', 'data_preprocessing', 'api', 'eval_model', 'build_features', 'predict_model']
+        loggers = {}
+
+        for module in modules:
+            file_handler = RotatingFileHandler(
+                os.path.join(self.log_directory, f'{module}.log'), 'a', maxBytes=1024 * 1024 * 5, backupCount=5
+            )
+            file_handler.setFormatter(formatter)
+            logger = logging.getLogger(module)
+            logger.setLevel(logging.INFO)
+            logger.addHandler(file_handler)
+            logger.propagate = True
+
+            # Each module gets its own MetricsLogger instance with the module name passed
+            loggers[module] = MetricsLogger(logger, module, registry=self.registry,
+                                            pushgateway_enabled=PUSH_GETAWAY_ENABLED)
+
+        # Configure console and history logging
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(CONSOLE_LEVEL)
+        console_handler.setFormatter(formatter)
+
+        rotating_handler = RotatingFileHandler(
+            os.path.join(log_directory, 'history.log'), LOG_MODE, maxBytes=1024 * 1024, backupCount=5
+        )
+        rotating_handler.setLevel(HISTORY_LEVEL)
+        rotating_handler.setFormatter(formatter)
+
+        root_logger = logging.getLogger()
+        root_logger.setLevel(DEFAULT_LEVEL)
+        root_logger.addHandler(console_handler)
+        root_logger.addHandler(rotating_handler)
+
+        return loggers

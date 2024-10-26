@@ -1,5 +1,5 @@
-import logging
 import os
+import warnings
 
 import pandas as pd
 from haversine import haversine, Unit
@@ -7,10 +7,28 @@ from pyproj import Transformer
 
 from src.utils import config as cfg
 # Initialize logging
-from src.utils.config import logger_features as logging
+from src.utils.config import LoggingMetricsManager
 
-logging.info("Logger loaded")
+# Get the logger for model training
+logging = LoggingMetricsManager().metrics_loggers['build_features']
+logging.info("build_features Logger loaded")
+# TESTING
+# logging.error("TEST ERROR")
+# logging.warning("TEST ERROR")
+# logging.info("TEST INFO")
+# logging.debug("TEST DEBUG")
+# logging.critical("TEST CRITICAL")
 
+# Generate a warning to test
+# warnings.warn("This is a build_features TEST warning", UserWarning)
+
+INCIDENT_ROWS_METRIC = "incident_rows"
+MOBILISATION_ROWS_METRIC = "mobilisation_rows"
+INCIDENT_CLEANED_ROWS_METRIC = "incident_cleaned_rows"
+MOBILISATION_CLEANED_ROWS_METRIC = "mobilisation_cleaned_rows"
+STATION_ROWS_METRIC = "station_rows"
+SAVED_FILE_SIZE_METRIC = "saved_file_size"
+SUCCESS_METRIC = "success"
 
 def _load_data():
     """
@@ -22,7 +40,11 @@ def _load_data():
         df_incident = pd.read_csv(str(os.path.join(cfg.chemin_data, cfg.fichier_incident)))
         df_mobilisation = pd.read_csv(str(os.path.join(cfg.chemin_data, cfg.fichier_mobilisation)))
         df_stations = pd.read_csv(str(os.path.join(cfg.chemin_data_ref, cfg.fichier_stations)))
-        logging.info("Data loaded successfully.")
+        logging.info("Data loaded successfully.", metrics={
+            INCIDENT_ROWS_METRIC: len(df_incident),
+            MOBILISATION_ROWS_METRIC: len(df_mobilisation),
+            STATION_ROWS_METRIC: len(df_stations)
+        })
         return df_incident, df_mobilisation, df_stations
     except Exception as e:
         logging.error(f"Failed to load data: {e}")
@@ -81,7 +103,10 @@ def _clean_data(df_incident, df_mobilisation, df_stations):
             result_type='expand')
         df_incident.drop(['Easting_rounded', 'Northing_rounded'], axis=1, inplace=True)
 
-        logging.info("Data cleaning completed successfully.")
+        logging.info("Data cleaning completed successfully.", metrics={
+            INCIDENT_CLEANED_ROWS_METRIC: len(df_incident),
+            MOBILISATION_CLEANED_ROWS_METRIC: len(df_mobilisation)
+        })
         return df_incident, df_mobilisation
     except Exception as e:
         logging.error(f"Data cleaning failed: {e}")
@@ -112,7 +137,9 @@ def _merge_datasets(df_incident, df_mobilisation):
         df_merged = df_merged.drop(['IncidentNumber', 'DateAndTimeMobilised', 'DeployedFromStation_Code',
                                     'latitude_station', 'longitude_station', 'Latitude', 'Longitude',
                                     'Resource_Code', 'VitesseMoy'], axis=1)
-        logging.info("Dataset merge and filter completed.")
+        logging.info("Dataset merge and filter completed.", metrics={
+            'merged_rows': len(df_merged)
+        })
         return df_merged
     except Exception as e:
         logging.error(f"Failed to merge datasets: {e}")
@@ -127,7 +154,9 @@ def _save_data(df_merged):
     """
     try:
         df_merged.to_csv(os.path.join(cfg.chemin_data, cfg.fichier_global), index=False)
-        logging.info("Data saved to CSV successfully.")
+        logging.info("Data saved to CSV successfully.", metrics={
+            SAVED_FILE_SIZE_METRIC: os.path.getsize(os.path.join(cfg.chemin_data, cfg.fichier_global))
+        })
     except Exception as e:
         logging.error(f"Failed to save data: {e}")
         raise
@@ -152,11 +181,11 @@ def build_features():
         # Save merged data
         _save_data(df_merged)
 
-        logging.info("Feature building process completed successfully.")
+        logging.info("Feature building process completed successfully.", metrics={SUCCESS_METRIC :True})
 
     except Exception as e:
         error_msg = f"An error occurred in the feature building process: {e}"
-        logging.error(error_msg)
+        logging.error(error_msg, metrics={'success':False})
         raise Exception(error_msg)
 
 

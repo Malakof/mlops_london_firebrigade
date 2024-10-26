@@ -1,4 +1,5 @@
 import os
+import warnings
 from typing import Dict, List
 
 from fastapi import FastAPI, Depends, HTTPException, status, Query, BackgroundTasks
@@ -9,8 +10,15 @@ from src.data import data_preprocessing
 from src.features import build_features
 from src.model import train_model, predict_model
 from src.utils import config as cfg
+from src.utils.config import LoggingMetricsManager
 
-from src.utils.config import logger_api as logging
+# Get the logger for model training
+logging = LoggingMetricsManager().metrics_loggers['api']
+logging.info("api Logger loaded")
+
+# Generate a warning to test
+warnings.warn("This is a api TEST warning", UserWarning)
+
 
 app = FastAPI(title="London Fire Brigade MLOPS API",
               description="API for London Fire Brigade incident prediction model",
@@ -42,6 +50,7 @@ class PredictionResponse(BaseModel):
 def authenticate_user(credentials: HTTPBasicCredentials = Depends(security)):
     username = credentials.username
     password = credentials.password
+
     if users.get(username) != password:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

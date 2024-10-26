@@ -179,3 +179,5 @@ dataset/*.csv
 # Richard
 /data/raw/
 /data/processed/
+/data/prometheus/
+/.vscode/
