@@ -646,12 +646,23 @@ Each run of a script generates metrics that are pushed in a batch to the Pushgat
 
 Logging and Metrics: the **MetricsLogger** class extends the standard logging functionality to include metrics logging. Each log message can optionally include associated metrics that are recorded and pushed to the Pushgateway to be scraped by prometheus.
 
+The code below demonstrates how to use the MetricsLogger to log messages and push metrics. Metrics are pushed **only if** the config parameter `PUSH_GETAWAY_ENABLED` is set to `True`.
+
 ```
+from src.utils.config import LoggingMetricsManager
+# Get the logger for model training
+logging = LoggingMetricsManager().metrics_loggers['train_model']
+
+# This line ALSO increments the info counter in prometheus metrics if PUSH_GETAWAY_ENABLED is True
+logging.info("train_model Logger loaded")
+
+# Several metrics logging and increment of info counter
 metrics = {
         MSE_METRIC: mean_squared_error(y_test, y_pred),
         # Other metrics
         MAX_ERROR_METRIC: max_error(y_test, y_pred)
     }
+    
 logging.info(f"Model Evaluation Metrics: {metrics}", 
     metrics=metrics,
     metric_types=['Gauge', 'Counter', 'Histogram', 'Gauge'])
@@ -676,6 +687,7 @@ and metrics list: http://localhost:9091/#metrics
 prometheus --config.file=/your_path_to/mlops_london_firebrigade/scripts/prometheus.yml --storage.tsdb.path=/your_path_to/mlops_london_firebrigade/data/prometheus
 ```
 **Step 4:** Access Prometheus
+
 Once prometheus is running, you can access the Prometheus web UI by navigating to:
 http://localhost:9090
 
