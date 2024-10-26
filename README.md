@@ -653,7 +653,8 @@ from src.utils.config import LoggingMetricsManager
 # Get the logger for model training
 logging = LoggingMetricsManager().metrics_loggers['train_model']
 
-# This line ALSO increments the info counter in prometheus metrics if PUSH_GETAWAY_ENABLED is True
+# This line ALSO increments the info counter 
+# in prometheus metrics if PUSH_GETAWAY_ENABLED is True
 logging.info("train_model Logger loaded")
 
 # Several metrics logging and increment of info counter
