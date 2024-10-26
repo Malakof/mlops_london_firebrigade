@@ -18,7 +18,7 @@ deployment rather than just the model's performance.
     - **features/**
         - `build_features.py` - Functions to build features from preprocessed data.
     - **model/**
-        - `eval_model.py` - Script for evaluating model metrics.
+        - `eval_model.py` - Placeholder script for evaluating model metrics.
         - `predict_model.py` - Functions for making predictions using the trained model.
         - `train_model.py` - Functions for training the model.
     - **utils/**
@@ -49,7 +49,7 @@ deployment rather than just the model's performance.
 
 - `train_model.py`: Trains and saves a linear regression model.
 - `predict_model.py`: Predicts attendance times using the trained model.
-- `eval_model.py`: Placeholder for model evaluation.
+- `eval_model.py`: Placeholder script for model evaluation.
 
 #### Configuration and Logging (`src/utils/config.py`)
 
