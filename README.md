@@ -616,6 +616,10 @@ API configuration. Below is a detailed explanation of each parameter:
 - `DEFAULT_LEVEL`, `CONSOLE_LEVEL`, and `HISTORY_LEVEL`: Define the logging levels used across different outputs (file,
   console, and historical logs).
 
+#### Prometheus and Pushgateway Setup
+- `PUSHGATEWAY_URL` sets the URL of the Pushgateway.
+- `PUSH_GETAWAY_ENABLED` enables or disables the metrics logging.
+
 ### Usage
 
 These parameters are utilized across various scripts to standardize the data paths, file names, and other operational
@@ -640,27 +644,38 @@ Each run of a script generates metrics that are pushed in a batch to the Pushgat
 `PUSHGATEWAY_URL` in `config.py` sets the URL of the Pushgateway.
 `PUSH_GETAWAY_ENABLED` in `config.py` enables or disables the metrics logging.
 
-Logging and Metrics: The MetricsLogger class extends the standard logging functionality to include metrics logging. Each log message can optionally include associated metrics that are recorded and pushed to the Pushgateway.
+Logging and Metrics: the **MetricsLogger** class extends the standard logging functionality to include metrics logging. Each log message can optionally include associated metrics that are recorded and pushed to the Pushgateway to be scraped by prometheus.
+
+```
+metrics = {
+        MSE_METRIC: mean_squared_error(y_test, y_pred),
+        # Other metrics
+        MAX_ERROR_METRIC: max_error(y_test, y_pred)
+    }
+logging.info(f"Model Evaluation Metrics: {metrics}", 
+    metrics=metrics,
+    metric_types=['Gauge', 'Counter', 'Histogram', 'Gauge'])
+```
 
 ### Setup
 
-Step 0: Make sure `PUSH_GETAWAY_ENABLED` is set to `True` and `PUSHGATEWAY_URL` address and port is correct
+**Step 0:** Make sure `PUSH_GETAWAY_ENABLED` is set to `True` and `PUSHGATEWAY_URL` address and port is correct
 
-Step 1: Run pushgateway through docker
+**Step 1:** Run pushgateway through docker
 
 ```bash
 docker pull prom/pushgateway  
 # check ports
 docker run -d -p 9091:9091 prom/pushgateway
 ```
-Step 2: Access pushgateway by naviagting batchs history: http://localhost:9091/#
+**Step 2:** Access pushgateway by naviagting batchs history: http://localhost:9091/#
 and metrics list: http://localhost:9091/#metrics
 
-Step 3: Run Prometheus locally (needs install before) with the command **(TEMPORARY UNTIL DOCKERISATION IS DONE)**:
+**Step 3:** Run Prometheus locally (needs install before) with the command **(TEMPORARY UNTIL DOCKERISATION IS DONE)**:
 ```bash
 prometheus --config.file=/your_path_to/mlops_london_firebrigade/scripts/prometheus.yml --storage.tsdb.path=/your_path_to/mlops_london_firebrigade/data/prometheus
 ```
-Step 4: Access Prometheus
+**Step 4:** Access Prometheus
 Once prometheus is running, you can access the Prometheus web UI by navigating to:
 http://localhost:9090
 
