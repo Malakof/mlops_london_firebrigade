@@ -556,8 +556,7 @@ The logging framework is integrated throughout the application code, with logger
 component. Developers can easily add new log messages or adjust logging levels as needed to enhance diagnostics or
 handle new features.
 
-Here's a detailed documentation for the `config.py` script in your project, focusing on the parameters it manages. This
-guide is formatted in Markdown to facilitate integration into your project documentation.
+Here's a detailed documentation for the `config.py` script used in the project, focusing on the parameters it manages.
 
 ## Configuration Parameters Guide
 
