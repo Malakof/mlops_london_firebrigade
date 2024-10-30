@@ -17,7 +17,7 @@ logging.info("api Logger loaded")
 warnings.warn("This is a api TEST warning", UserWarning)
 
 
-app = FastAPI(title="London Fire Brigade MLOPS API",
+app = FastAPI(title="London Fire Brigade MLOPS API /predict",
               description="API for London Fire Brigade incident prediction model",
               version="1.0.0")
 

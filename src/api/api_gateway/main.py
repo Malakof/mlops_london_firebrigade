@@ -65,14 +65,14 @@ async def process_data(
 @app.get("/build_features")
 #async def build_features(username: str = Depends(authenticate_user)):
 async def build_features():
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.get("http://build_features_service:8002/build_features")
     return response.json()
 
 @app.post("/train_model")
 #async def train_model(request: dict, username: str = Depends(authenticate_user)):
 async def train_model(request: dict):
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.post("http://train_model_service:8003/train_model", json=request)
     return response.json()
 

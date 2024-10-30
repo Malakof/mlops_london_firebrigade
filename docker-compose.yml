@@ -17,6 +17,8 @@ services:
       - my_network_for_api
     volumes:
       - ./logs:/app/logs
+      - ./data:/app/data
+      - ./models:/app/models
     environment:
       - DOCKER=1
 
