@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  
+  api_gateway:
+    build:
+      context: .
+      dockerfile: ./src/api/api_gateway/Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - process_data_service
+      - build_features_service
+      - train_model_service
+      - predict_service
+    networks:
+      - my_network_for_api
+    volumes:
+      - ./logs:/app/logs
+    environment:
+      - DOCKER=1
+
+  process_data_service:
+    build:
+      context: .
+      dockerfile: ./src/api/microservices/process_data_service/Dockerfile
+    ports:
+      - "8001:8001"
+    networks:
+      - my_network_for_api
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    environment:
+      - DOCKER=1
+
+  build_features_service:
+    build:
+      context: .
+      dockerfile: ./src/api/microservices/build_features_service/Dockerfile
+    ports:
+      - "8002:8002"
+    networks:
+      - my_network_for_api
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    environment:
+      - DOCKER=1
+
+  train_model_service:
+    build:
+      context: .
+      dockerfile: ./src/api/microservices/train_model_service/Dockerfile
+    ports:
+      - "8003:8003"
+    networks:
+      - my_network_for_api
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./models:/app/models
+    environment:
+      - DOCKER=1
+
+  predict_service:
+    build:
+      context: .
+      dockerfile: ./src/api/microservices/predict_service/Dockerfile
+    ports:
+      - "8004:8004"
+    networks:
+      - my_network_for_api
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./models:/app/models
+    environment:
+      - DOCKER=1
+
+networks:
+  my_network_for_api:

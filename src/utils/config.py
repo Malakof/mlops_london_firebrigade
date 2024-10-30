@@ -5,11 +5,22 @@ import warnings
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
-chemin_data = '../../data'
-chemin_data_ref = '../../data/ref'
-chemin_model = '../../models'
-# Define the log directory and make sure it exists
-log_directory = '../../logs'
+
+if os.environ.get('DOCKER') == '1':
+    #pour docker
+    chemin_data = 'data'
+    chemin_data_ref = 'data/ref'
+    chemin_model = 'models'
+    # Define the log directory and make sure it exists
+    log_directory = 'logs'
+else:
+    chemin_data = '../../data'
+    chemin_data_ref = '../../data/ref'
+    chemin_model = '../../models'
+    # Define the log directory and make sure it exists
+    log_directory = '../../logs'
+
+
 if not os.path.exists(log_directory):
     os.makedirs(log_directory)
 

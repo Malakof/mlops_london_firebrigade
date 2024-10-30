@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+httpx
+typing
+pandas
+requests
+tqdm
+argparse
+openpyxl
+prometheus_client
+loguru
+haversine
+pyproj
