@@ -693,6 +693,13 @@ http://localhost:9090
 
 From here, you can run all the scripts and use the Prometheus Expression Browser to run queries and view metrics being scraped by Prometheus during the batchs executions.
 
+**Step 4:** Run Grafana locally 
+```bash
+docker run -d -p 3000:3000 --name=grafana grafana/grafana-enterprise
+```
+Once Grafana is up the you can navigate to:
+http://localhost:3000
+
 ### Common Metrics
 
 All scripts share common metrics related to logging at different severity levels. These metrics are counters that keep track of the number of log messages of each severity level encountered during a script run. This helps in monitoring the frequency and severity of events occurring in each script.
