@@ -1,6 +1,5 @@
 import argparse
 import os
-import warnings
 from time import time
 
 import joblib
@@ -11,19 +10,19 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 
 from src.utils import config as cfg
-from src.utils.config import LoggingMetricsManager
+from src.utils.config import LoggingMetricsManager, log_model, start_mlflow_session
+from src.utils.config import USE_MLFLOW
 
 # Get the logger for model training
 logging = LoggingMetricsManager().metrics_loggers['train_model']
 logging.info("train_model Logger loaded")
 
-
 # FOR TESTING
-# logging.error("TEST ERROR")
-# logging.warning("TEST ERROR")
-# logging.info("TEST INFO")
-# logging.debug("TEST DEBUG")
-# logging.critical("TEST CRITICAL")
+logging.error("TEST ERROR")
+logging.warning("TEST ERROR")
+logging.info("TEST INFO")
+logging.debug("TEST DEBUG")
+logging.critical("TEST CRITICAL")
 
 # Generate a warning to test
 # warnings.warn("This is a train_model TEST warning", UserWarning)
@@ -33,6 +32,8 @@ MAE_METRIC = 'mae'
 MAX_ERROR_METRIC = 'max_error'
 DATA_SIZE_METRIC = 'original_data_size'
 PROCESSED_DATA_SIZE_METRIC = 'processed_data_size'
+
+
 def _load_data(filepath):
     """
     Load dataset from a CSV file.
@@ -60,16 +61,29 @@ def _preprocess_data(df):
         DataFrame: The DataFrame with preprocessed features.
         OneHotEncoder: Fitted OneHotEncoder instance.
     """
-    logging.info("Preprocessing data.")
+    logging.info("Preprocessing data.")  # Log the start of the data preprocessing step
+
+    # Identify numeric and categorical feature columns
     numeric_features = df.select_dtypes(include=['int64', 'float64']).columns.values
     categorical_features = df.select_dtypes(exclude=['int64', 'float64']).columns.values
 
+    # Initialize the OneHotEncoder for categorical features
     encoder = OneHotEncoder()
+
+    # Fit the encoder and transform the categorical features into one-hot encoded arrays
     encoded_categorical = encoder.fit_transform(df[categorical_features]).toarray()
+
+    # Create a DataFrame from the encoded arrays with appropriate column names
     encoded_df = pd.DataFrame(encoded_categorical, columns=encoder.get_feature_names_out(categorical_features))
 
+    # Concatenate numeric and encoded categorical features into a single DataFrame
     processed_data = pd.concat([df[numeric_features].reset_index(drop=True), encoded_df.reset_index(drop=True)], axis=1)
-    logging.info("Data preprocessing completed.", metrics={PROCESSED_DATA_SIZE_METRIC: processed_data.memory_usage(deep=True).sum()})
+
+    # Log the completion of data preprocessing with the processed data size metric
+    logging.info("Data preprocessing completed.",
+                 metrics={PROCESSED_DATA_SIZE_METRIC: processed_data.memory_usage(deep=True).sum()})
+
+    # Return the processed data and the fitted encoder
     return processed_data, encoder
 
 
@@ -84,10 +98,15 @@ def _train_model(features, target):
     Returns:
         model: Trained model.
     """
+    # Train a linear regression model
     logging.info("Training model.")
+    # Initialize a LinearRegression model
     model = LinearRegression()
+    # Split the data into training and test sets
     X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.25, random_state=42)
+    # Fit the model to the training data
     model.fit(X_train, y_train)
+    # Return the trained model and the split data
     return model, X_train, X_test, y_train, y_test
 
 
@@ -131,33 +150,39 @@ def _save_model(model, encoder, model_path, encoder_path):
 
 def train_pipeline(data_path, model_path, encoder_path):
     """
-    Orchestrates the machine learning pipeline from data loading to model saving.
-    Returns evaluation metrics or raises an exception with a detailed error message.
+    Full pipeline for training a linear regression model from data loading to saving the model.
 
     Args:
-        data_path (str): Path to the dataset CSV file.
-        model_path (str): Path where the trained model will be saved.
-        encoder_path (str): Path where the encoder will be saved.
-
-    Returns:
-        dict: A dictionary containing various evaluation metrics if successful.
-
-    Raises:
-        Exception: An exception with a detailed error message if the pipeline fails.
+        data_path (str): Path to the CSV file containing training data.
+        model_path (str): Path to save the trained model.
+        encoder_path (str): Path to save the trained encoder.
     """
     try:
+        # Load data
         df_base = _load_data(data_path)
+        # Split into features and target
         feats, target = df_base.drop('AttendanceTimeSeconds', axis=1), df_base['AttendanceTimeSeconds']
+        # Preprocess features
         processed_feats, encoder = _preprocess_data(feats)
+        # Split into training and test sets
         model, X_train, X_test, y_train, y_test = _train_model(processed_feats, target)
+        # Evaluate model
         metrics = _evaluate_model(model, X_test, y_test)
         logging.info(f"Model Evaluation Metrics: {metrics}", metrics=metrics)
+        # Log model and metrics in MLflow if enabled
+        if USE_MLFLOW:
+            start_mlflow_session(cfg.MLFLOW_EXPERIMENT_NAME, cfg.MLFLOW_TRACKING_URI)
+            log_model(model, encoder, "LFB_MLOPS_Model", model_path, encoder_path, metrics)
+
+        # Save model and encoder locally
         _save_model(model, encoder, model_path, encoder_path)
-        return metrics
     except Exception as e:
+        # Catch any exceptions and log them
         error_msg = f"An error occurred during the pipeline execution: {e}"
         logging.error(error_msg)
         raise Exception(error_msg)
+
+    return metrics
 
 
 def main():

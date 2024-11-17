@@ -1,13 +1,9 @@
 import argparse
-import os
 import sys
-import warnings
 
-import joblib
 import pandas as pd
 
-from src.utils import config as cfg
-from src.utils.config import LoggingMetricsManager
+from src.utils.config import LoggingMetricsManager, load_model_and_encoder
 
 # Get the logger for model training
 logging = LoggingMetricsManager().metrics_loggers['predict_model']
@@ -27,23 +23,6 @@ NUM_FEATURES_METRIC = 'num_features'
 NUM_PREDICTIONS_METRIC = 'prediction_result'
 SUCCESS_METRIC = 'success'
 
-def _load_model_and_encoder():
-    """
-    Load the machine learning model and encoder from disk.
-
-    Returns:
-        tuple: Loaded model and encoder.
-    """
-    try:
-        model = joblib.load(os.path.join(cfg.chemin_model, cfg.fichier_model))
-        encoder = joblib.load(os.path.join(cfg.chemin_model, 'onehot_encoder.pkl'))
-        logging.info("Model and encoder loaded successfully.")
-        return model, encoder
-    except Exception as e:
-        logging.error("Failed to load model and encoder: " + str(e))
-        raise
-
-
 def _prepare_features(data, encoder):
     """
     Prepare features for prediction by encoding categorical variables and handling numeric features.
@@ -56,19 +35,27 @@ def _prepare_features(data, encoder):
         DataFrame: Features ready for prediction.
     """
     try:
+        # Identify numeric and categorical feature columns
         numeric_features = data.select_dtypes(include=['int64', 'float64']).columns.values
         categorical_features = data.select_dtypes(exclude=['int64', 'float64']).columns.values
 
+        # Encode categorical features using the OneHotEncoder
         encoded_categorical = encoder.transform(data[categorical_features]).toarray()
+
+        # Create a DataFrame from the encoded categorical features
         encoded_df = pd.DataFrame(encoded_categorical, columns=encoder.get_feature_names_out(categorical_features))
 
+        # Concatenate numeric and encoded categorical features into a single DataFrame
         prepared_data = pd.concat([data[numeric_features].reset_index(drop=True), encoded_df.reset_index(drop=True)],
                                   axis=1)
+
+        # Log the completion of feature preparation with the number of features as a metric
         logging.info("Features prepared for prediction.", metrics={
             NUM_FEATURES_METRIC: len(numeric_features) + len(categorical_features)
         })
         return prepared_data
     except Exception as e:
+        # Log any errors that occur during feature preparation
         logging.error("Failed to prepare features: " + str(e))
         raise
 
@@ -85,23 +72,37 @@ def make_predict(distance=1.3, station_de_depart='Acton'):
         DataFrame: Predictions as a DataFrame.
     """
     try:
-        model, encoder = _load_model_and_encoder()
+        # Load the model and encoder
+        model, encoder = load_model_and_encoder("LFB_MLOPS_Model")
+
+        # Create a DataFrame for new data with distance and station name
         new_data = pd.DataFrame({
             'distance': [distance],
             'DeployedFromStation_Name': [station_de_depart]
         })
 
+        # Prepare features for prediction using the encoder
         prepared_features = _prepare_features(new_data, encoder)
+
+        # Make predictions using the model
         predictions = model.predict(prepared_features)
+
+        # Convert predictions to a DataFrame
         predictions_df = pd.DataFrame(predictions, columns=['Predicted AttendanceTimeSeconds'])
+
+        # Log the successful completion of prediction
         logging.info("Prediction completed successfully.", metrics={
             NUM_PREDICTIONS_METRIC: predictions[0]
         })
-        logging.debug(f"Predictions: {predictions},  completed successfully.")
-        return predictions_df
+        logging.debug(f"Predictions: {predictions}, completed successfully.")
+
     except Exception as e:
+        # Log any errors that occur during prediction
         logging.error("Failed to make predictions: " + str(e))
         raise
+
+    # Return the predictions as a DataFrame
+    return predictions_df
 
 
 def main():
@@ -115,9 +116,10 @@ def main():
     args = parser.parse_args()
     try:
         prediction_results = make_predict(args.distance, args.station)
-        logging.info(f"Predictions: \n{prediction_results}", metrics={SUCCESS_METRIC:True})
+        logging.info(f"Predictions: \n{prediction_results}", metrics={SUCCESS_METRIC: True})
     except Exception as e:
-        logging.error(f"An error occurred during the prediction process: {e} with args: {args}", metrics={SUCCESS_METRIC:False})
+        logging.error(f"An error occurred during the prediction process: {e} with args: {args}",
+                      metrics={SUCCESS_METRIC: False})
         sys.exit(1)
 
 

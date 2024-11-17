@@ -82,6 +82,10 @@ from prometheus_client import CollectorRegistry
 PUSH_GETAWAY_ENABLED = False
 PUSHGATEWAY_URL = 'http://localhost:9091'
 
+USE_MLFLOW = False  # This can be toggled to enable/disable MLflow integration
+MLFLOW_TRACKING_URI = 'http://localhost:9092'  # URI to MLflow tracking server
+MLFLOW_EXPERIMENT_NAME = 'LFB_MLOPS'  # Name of the MLflow experiment
+
 # Metrics definitions
 registry = CollectorRegistry(auto_describe=True)
 
@@ -90,6 +94,20 @@ from prometheus_client import push_to_gateway, Gauge, Counter, Histogram, Collec
 
 class MetricsLogger:
     def __init__(self, logger, module, registry=None, pushgateway_enabled=False):
+        """
+        Initializes a MetricsLogger instance.
+
+        Args:
+            logger: The logger instance to be used for logging.
+            module: The name of the module where metrics are being logged.
+            registry: An optional CollectorRegistry instance for registering metrics.
+                      If not provided, a new CollectorRegistry is created.
+            pushgateway_enabled: A boolean indicating if the Pushgateway is enabled for pushing metrics.
+
+        Attributes:
+            metrics_dict: A dictionary to store metrics.
+            job_id: A unique job ID for each instance, composed of the current timestamp and a UUID.
+        """
         self.logger = logger
         self.module = module
         self.registry = registry or CollectorRegistry(auto_describe=True)
@@ -97,8 +115,21 @@ class MetricsLogger:
         self.metrics_dict = {}  # Dictionary to store metrics
         self.job_id = f"{datetime.now().strftime('%y%m%d-%H%M%S')}_{uuid.uuid4()}"  # Unique job ID for each instance
 
-    def _create_metric(self, name, metric_type, description):
-        """Create or retrieve a Prometheus metric, ensuring names are compliant with Prometheus conventions."""
+    def _get_or_create_metric(self, name, metric_type, description):
+        """
+        Retrieves an existing metric or creates a new one if it does not exist.
+
+        Args:
+            name (str): The base name of the metric.
+            metric_type (type): The class type of the metric (e.g., Gauge, Counter, Histogram).
+            description (str): A brief description of the metric.
+
+        Returns:
+            Metric: The existing or newly created metric object.
+
+        Raises:
+            ValueError: If a non-duplicate error occurs during metric creation.
+        """
         metric_name = f"{name}_{self.module}".lower()
         if metric_name not in self.metrics_dict:
             try:
@@ -116,9 +147,21 @@ class MetricsLogger:
         push_to_gateway(PUSHGATEWAY_URL, job=f'{self.module}_{self.job_id}', registry=self.registry)
 
     def log(self, level, message, metrics=None, metric_types=None):
+        """
+        Logs a message with the given level and metrics.
+
+        Args:
+            level (str): The log level (e.g. 'debug', 'info', 'warning', 'error', 'critical').
+            message (str): The log message.
+            metrics (dict[str, float], optional): A dictionary of metrics to log. Defaults to None.
+            metric_types (list[str], optional): A list of metric types corresponding to the values in `metrics`. Defaults to None.
+
+        Raises:
+            ValueError: If a non-duplicate error occurs during metric creation.
+        """
         getattr(self.logger, level.lower())(message)
         log_metric_name = f"{level.lower()}_logs"
-        logs_metric = self._create_metric(log_metric_name, Counter, f"Number of {level.lower()} level logs").labels(
+        logs_metric = self._get_or_create_metric(log_metric_name, Counter, f"Number of {level.lower()} level logs").labels(
             module=self.module)
         logs_metric.inc()
 
@@ -131,7 +174,7 @@ class MetricsLogger:
                     'Gauge': Gauge,
                     'Histogram': Histogram
                 }.get(m_type, Gauge)  # Default to Gauge if unknown type
-                metric = self._create_metric(metric_name, metric_class, f"{m_type} for {metric_name}")
+                metric = self._get_or_create_metric(metric_name, metric_class, f"{m_type} for {metric_name}")
                 if m_type == 'Histogram':
                     metric.labels(module=self.module).observe(value)
                 else:
@@ -159,6 +202,34 @@ class MetricsLogger:
 
 def custom_show_warning(message, category, filename, lineno, file=None, line=None):
     # Access the singleton instance of LoggingMetricsManager
+    """
+    Custom warning handler that logs warnings to a MetricsLogger instance.
+
+    This function is called by the warnings module when a warning is raised. It logs the warning message to a
+    MetricsLogger instance, which is determined based on the filename in which the warning was raised. The logger is
+    obtained from a dictionary that maps filenames to logger instances.
+
+    The warning message is logged at the WARNING level, and the logger is also configured to log to the root logger.
+
+    Parameters
+    ----------
+    message : str
+        The warning message
+    category : warnings.WarningMessage
+        The warning category
+    filename : str
+        The filename in which the warning was raised
+    lineno : int
+        The line number on which the warning was raised
+    file : file-like object, optional
+        The file object to write to, by default None
+    line : str, optional
+        The line of source code that triggered the warning, by default None
+
+    Returns
+    -------
+    None
+    """
     logging_manager = LoggingMetricsManager()  # This will fetch the existing initialized instance
     metrics_loggers = logging_manager.metrics_loggers
 
@@ -200,15 +271,38 @@ class SingletonMeta(type):
     _instances = {}
 
     def __call__(cls, *args, **kwargs):
+        """
+        Ensure that only one instance of a Singleton class is created.
+
+        This method is called when an instance of the class is requested. If an instance does not exist, one is created
+        and stored in the `_instances` dictionary. Subsequent calls to `__call__` will return the existing instance.
+
+        :param args: Arguments to pass to the class constructor
+        :param kwargs: Keyword arguments to pass to the class constructor
+        :return: The instance of the class
+        :rtype: cls
+        """
         if cls not in cls._instances:
             instance = super().__call__(*args, **kwargs)
             cls._instances[cls] = instance
         return cls._instances[cls]
 
-
 class LoggingMetricsManager(metaclass=SingletonMeta):
     def __init__(self):
-        # clear_prometheus_registry()
+        """
+        Initializes a LoggingMetricsManager instance.
+
+        This method is called when an instance of the class is requested. If an instance does not exist, one is created
+        and stored in the `_instances` dictionary. Subsequent calls to `__init__` will return the existing instance.
+
+        This method sets up the logging configuration for each module in the list `modules`, including creating a
+        rotating file handler and setting the log level to INFO. Additionally, a MetricsLogger is created for each
+        module, which is used to record metrics for each module.
+
+        The root logger is also configured to log to the console and to a history log file.
+
+        :return: None
+        """
         if not hasattr(self, 'initialized'):  # This check prevents reinitialization
             self.log_directory = log_directory
             self.registry = CollectorRegistry()
@@ -216,6 +310,18 @@ class LoggingMetricsManager(metaclass=SingletonMeta):
             self.initialized = True
 
     def setup_logging(self):
+        """
+        Sets up logging for each module in the list `modules`.
+
+        This involves creating a rotating file handler for each module, setting the log level to INFO, and adding the
+        handler to the logger. Additionally, a MetricsLogger is created for each module, which is used to record metrics
+        for each module.
+
+        The root logger is also configured to log to the console and to a history log file.
+
+        :return: A dictionary of loggers, keyed by module name
+        :rtype: dict[str, logging.Logger]
+        """
         log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         date_format = '%Y-%m-%d %H:%M:%S'
         formatter = logging.Formatter(log_format, datefmt=date_format)
@@ -254,3 +360,86 @@ class LoggingMetricsManager(metaclass=SingletonMeta):
         root_logger.addHandler(rotating_handler)
 
         return loggers
+
+# mlflow utils
+import mlflow
+import mlflow.sklearn
+import joblib
+
+def start_mlflow_session(experiment_name, tracking_uri):
+    """
+    Initialize the MLflow tracking environment by setting the tracking URI and selecting the experiment.
+
+    Args:
+        experiment_name (str): The name of the experiment under which to log runs.
+        tracking_uri (str): The URI of the MLflow tracking server.
+    """
+    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_experiment(experiment_name)
+
+
+def log_model(model, encoder, run_name, model_path, encoder_path, metrics):
+    """
+    Log the ML model, its encoder, and performance metrics to MLflow and register the model.
+
+    Args:
+        model: The trained model object.
+        encoder: The encoder object used for preprocessing categorical variables.
+        run_name (str): The name to give to the MLflow run.
+        model_path (str): Path where the model is saved locally.
+        encoder_path (str): Path where the encoder is saved locally.
+        metrics (dict): A dictionary of performance metrics to log.
+    """
+    with mlflow.start_run() as run:
+        mlflow.set_tag("mlflow.runName", run_name)  # Set a custom name for the MLflow run
+        mlflow.log_params({"model_type": "linear_regression"})  # Log model parameters
+        mlflow.log_metrics(metrics)  # Log performance metrics
+        mlflow.sklearn.log_model(model, "model", registered_model_name=run_name)  # Log and register the model
+        mlflow.log_artifact(encoder_path, "encoder")  # Log the encoder as an artifact
+        mlflow.register_model(f"runs:/{run.info.run_id}/model", run_name)  # Register the model in MLflow
+
+def load_model_and_encoder(run_name):
+    """
+    Load the machine learning model and encoder either from local disk or MLflow based on configuration.
+
+    Args:
+        run_name (str): The name of the MLflow run from which to load the model, used only if USE_MLFLOW is True.
+
+    Returns:
+        tuple: A tuple containing the loaded model and encoder objects.
+    """
+    try:
+        if USE_MLFLOW:
+            mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+            mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+
+            # Search for the latest run with the given name
+            runs = mlflow.search_runs(filter_string=f"tags.mlflow.runName='{run_name}'",
+                                      order_by=["attribute.start_time DESC"], max_results=1)
+            if runs.empty:
+                raise Exception("No runs found for the specified tag.")
+
+            # Extract the run ID
+            run_id = runs.iloc[0]['run_id']
+
+            # Construct the path to the model in the MLflow tracking server
+            model_path = f"runs:/{run_id}/model"
+            model = mlflow.sklearn.load_model(model_path)
+
+            # Construct the path to the encoder within the MLflow artifacts
+            encoder_artifact_path = f"encoder/onehot_encoder.pkl"
+            encoder_path = mlflow.artifacts.download_artifacts(run_id=run_id, artifact_path=encoder_artifact_path)
+            encoder = joblib.load(encoder_path)
+
+            logging.info("Model and encoder loaded successfully from MLflow.")
+        else:
+            # Load the saved machine learning model from disk
+            model = joblib.load(os.path.join(chemin_model, 'model.pkl'))
+            # Load the saved OneHotEncoder from disk
+            encoder = joblib.load(os.path.join(chemin_model, 'onehot_encoder.pkl'))
+            logging.info("Model and encoder loaded successfully from local storage.")
+    except Exception as e:
+        logging.error(f"Failed to load model and encoder from local storage: {str(e)}")
+        raise
+
+    return model, encoder

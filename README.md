@@ -452,7 +452,7 @@ python -m unittest discover -s tests
 
 This command will discover all test files in the `tests` directory and execute them.
 
-### Running Tests via GitHub Actions
+### Running Tests via GitHub Actions / CI / CD
 
 To run these tests automatically via GitHub Actions, include the following steps in your `.github/workflows/main.yml`
 file:
@@ -843,6 +843,54 @@ Note:** {filename} is derived from the URL or filepath, sanitized to create a va
 
 While the API script primarily handles HTTP requests and orchestrates calls to other scripts, it also utilizes the MetricsLogger to record log message counters. Additional metrics can be added as needed to monitor API-specific events.
 
+### MLflow Integration
+
+#### Overview of Scripts
+
+##### `config.py`
+
+This script sets up the configuration parameters for the entire project. It includes paths for data storage, model storage, and logging configurations. It also defines the parameters for MLflow integration.
+
+##### `train_model.py`
+
+This script handles the training of machine learning models and logs the training process, model parameters, metrics, and artifacts to MLflow.
+
+###### MLflow Integration
+
+1. **Starting an MLflow Session**: At the beginning of the training process, an MLflow session is started by setting the tracking URI and specifying the experiment name.
+2. **Logging Parameters and Metrics**: Model parameters and training metrics are logged to MLflow to keep track of the model's performance.
+3. **Model and Encoder Logging**: The trained model along with its encoder is logged as an MLflow artifact, allowing versioning and easy deployment.
+4. **Model Registration**: Post training, the model is registered in MLflow's model registry under a specified name, facilitating model management and version control.
+
+##### `predict_model.py`
+
+This script uses the trained models to make predictions. It can fetch the latest model from MLflow's model registry to ensure that the most recent and potentially the best-performing model is used.
+
+###### MLflow Integration
+
+1. **Loading Model from MLflow**: Depending on the configuration parameter `USE_MLFLOW`, the script either loads a locally saved model or fetches the latest model version from MLflow's model registry.
+2. **Making Predictions**: Once the model is loaded, it is used to make predictions based on new input data.
+
+#### Configuration Parameters
+
+Ensure that the following parameters are properly set in `config.py` to enable MLflow integration:
+- `USE_MLFLOW`: Boolean flag to toggle MLflow tracking on or off.
+- `MLFLOW_TRACKING_URI`: Set this to the address of your MLflow tracking server, e.g., `http://localhost:5000`.
+- `MLFLOW_EXPERIMENT_NAME`: Name the experiment appropriately to reflect the nature of the training or prediction tasks.
+
+#### Setup Instructions
+
+1. **Install Dependencies**: Ensure MLflow and all other required libraries are installed using `pip install mlflow pandas sklearn` 
+2. `mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlflow-artifacts --host 0.0.0.0 --port 9092` to start the server 
+2. **Configure MLflow**: Modify `config.py` to point to your MLflow server.
+3. **Run Training**: Execute `python train_model.py` to train models and log information to MLflow.
+4. **Run Prediction**: Execute `python predict_model.py` to make predictions using models managed in MLflow.
+
+#### Conclusion
+
+Integrating MLflow helps in managing the lifecycle of machine learning models effectively, from logging experiments to serving predictions using the best models. This project demonstrates a practical implementation of these capabilities.
+
+## Dockerisation
 
 
 
