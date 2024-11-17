@@ -184,3 +184,4 @@ dataset/*.csv
 /mlflow-artifacts/
 /mlruns/
 /mlflow.db
+/models
