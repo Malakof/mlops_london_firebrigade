@@ -181,3 +181,6 @@ dataset/*.csv
 /data/processed/
 /data/prometheus/
 /.vscode/
+/mlflow-artifacts/
+/mlruns/
+/mlflow.db
