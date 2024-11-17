@@ -719,34 +719,34 @@ Each script may define additional metrics relevant to its specific operations. T
 
 Below is a comprehensive list of all metrics logged by each script during a batch run, including the constants used, the resulting Prometheus metric names, their types, and detailed descriptions.
 
-| Script | Metric Name | Metric Type | Description |
-| --- | --- | --- | --- |
-| data_preprocessing.py | success_incident_data_preprocessing | Gauge | Indicates whether the processing of incident data was successful (1 for success, 0 for failure). |
-|  | success_mobilisation_data_preprocessing | Gauge | Indicates whether the processing of mobilisation data was successful (1 for success, 0 for failure). |
-|  | download_size_in_bytes_{filename}_data_preprocessing | Gauge | Total size in bytes of the file to be downloaded for a specific data type (incident or mobilisation). |
-|  | downloaded_bytes_{filename}_data_preprocessing | Gauge | Number of bytes actually downloaded for a specific data type. |
-|  | expected_bytes_{filename}_data_preprocessing | Gauge | Expected number of bytes to be downloaded for a specific data type. |
-|  | initial_count_{filename}_data_preprocessing | Gauge | Number of records in the dataset before filtering for a specific data type. |
-|  | filtered_count_{filename}_data_preprocessing | Gauge | Number of records in the dataset after filtering for a specific data type. |
-|  | record_saved_{filename}_data_preprocessing | Gauge | Number of records saved to the CSV file for a specific data type. |
-|  | download_duration_seconds_{filename}_data_preprocessing | Gauge | Duration in seconds taken to download the file for a specific data type. |
-|  | filter_duration_seconds_{filename}_data_preprocessing | Gauge | Duration in seconds taken to filter the data for a specific data type. |
-| build_features.py | incident_rows_build_features | Gauge | Number of incident data rows loaded before cleaning. |
-|  | mobilisation_rows_build_features | Gauge | Number of mobilisation data rows loaded before cleaning. |
-|  | station_rows_build_features | Gauge | Number of station data rows loaded. |
-|  | incident_cleaned_rows_build_features | Gauge | Number of incident data rows after cleaning. |
-|  | mobilisation_cleaned_rows_build_features | Gauge | Number of mobilisation data rows after cleaning. |
-|  | saved_file_size_build_features | Gauge | Size in bytes of the saved merged dataset CSV file. |
-|  | success_build_features | Gauge | Indicates whether the feature building process was successful (1 for success, 0 for failure). |
-| train_model.py | original_data_size_train_model | Gauge | Size in bytes of the original dataset loaded for training. |
-|  | processed_data_size_train_model | Gauge | Size in bytes of the dataset after preprocessing. |
-|  | mse_train_model | Gauge | Mean Squared Error of the model on the test dataset. |
-|  | r2_score_train_model | Gauge | R-squared score (coefficient of determination) of the model on the test dataset. |
-|  | mae_train_model | Gauge | Mean Absolute Error of the model on the test dataset. |
-|  | max_error_train_model | Gauge | Maximum residual error of the model on the test dataset. |
-| predict_model.py | num_features_predict_model | Gauge | Total number of features used for making the prediction. |
-|  | prediction_result_predict_model | Gauge | The predicted attendance time in seconds. |
-|  | success_predict_model | Gauge | Indicates whether the prediction process was successful (1 for success, 0 for failure). |
+| Script                | Metric Name                                             | Metric Type | Description                                                                                           |
+|-----------------------|---------------------------------------------------------|-------------|-------------------------------------------------------------------------------------------------------|
+| data_preprocessing.py | success_incident_data_preprocessing                     | Gauge       | Indicates whether the processing of incident data was successful (1 for success, 0 for failure).      |
+|                       | success_mobilisation_data_preprocessing                 | Gauge       | Indicates whether the processing of mobilisation data was successful (1 for success, 0 for failure).  |
+|                       | download_size_in_bytes_{filename}_data_preprocessing    | Gauge       | Total size in bytes of the file to be downloaded for a specific data type (incident or mobilisation). |
+|                       | downloaded_bytes_{filename}_data_preprocessing          | Gauge       | Number of bytes actually downloaded for a specific data type.                                         |
+|                       | expected_bytes_{filename}_data_preprocessing            | Gauge       | Expected number of bytes to be downloaded for a specific data type.                                   |
+|                       | initial_count_{filename}_data_preprocessing             | Gauge       | Number of records in the dataset before filtering for a specific data type.                           |
+|                       | filtered_count_{filename}_data_preprocessing            | Gauge       | Number of records in the dataset after filtering for a specific data type.                            |
+|                       | record_saved_{filename}_data_preprocessing              | Gauge       | Number of records saved to the CSV file for a specific data type.                                     |
+|                       | download_duration_seconds_{filename}_data_preprocessing | Gauge       | Duration in seconds taken to download the file for a specific data type.                              |
+|                       | filter_duration_seconds_{filename}_data_preprocessing   | Gauge       | Duration in seconds taken to filter the data for a specific data type.                                |
+| build_features.py     | incident_rows_build_features                            | Gauge       | Number of incident data rows loaded before cleaning.                                                  |
+|                       | mobilisation_rows_build_features                        | Gauge       | Number of mobilisation data rows loaded before cleaning.                                              |
+|                       | station_rows_build_features                             | Gauge       | Number of station data rows loaded.                                                                   |
+|                       | incident_cleaned_rows_build_features                    | Gauge       | Number of incident data rows after cleaning.                                                          |
+|                       | mobilisation_cleaned_rows_build_features                | Gauge       | Number of mobilisation data rows after cleaning.                                                      |
+|                       | saved_file_size_build_features                          | Gauge       | Size in bytes of the saved merged dataset CSV file.                                                   |
+|                       | success_build_features                                  | Gauge       | Indicates whether the feature building process was successful (1 for success, 0 for failure).         |
+| train_model.py        | original_data_size_train_model                          | Gauge       | Size in bytes of the original dataset loaded for training.                                            |
+|                       | processed_data_size_train_model                         | Gauge       | Size in bytes of the dataset after preprocessing.                                                     |
+|                       | mse_train_model                                         | Gauge       | Mean Squared Error of the model on the test dataset.                                                  |
+|                       | r2_score_train_model                                    | Gauge       | R-squared score (coefficient of determination) of the model on the test dataset.                      |
+|                       | mae_train_model                                         | Gauge       | Mean Absolute Error of the model on the test dataset.                                                 |
+|                       | max_error_train_model                                   | Gauge       | Maximum residual error of the model on the test dataset.                                              |
+| predict_model.py      | num_features_predict_model                              | Gauge       | Total number of features used for making the prediction.                                              |
+|                       | prediction_result_predict_model                         | Gauge       | The predicted attendance time in seconds.                                                             |
+|                       | success_predict_model                                   | Gauge       | Indicates whether the prediction process was successful (1 for success, 0 for failure).               |
 #### 5. api/main.py
 
 While the API script primarily handles HTTP requests and orchestrates calls to other scripts, it also utilizes the MetricsLogger to record log message counters. Additional metrics can be added as needed to monitor API-specific events.
