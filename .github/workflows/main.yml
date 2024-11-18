@@ -13,6 +13,7 @@ permissions:
   contents: read
 
 jobs:
+
   
   build:
 
@@ -42,16 +43,34 @@ jobs:
         run: |
             cd ../mlops_london_firebrigade
             pip install -r requirements.txt
+    
       - name: Test with unitest
         run: |
-            python -m unittest discover -s tests
+            cd ../mlops_london_firebrigade/scripts
+            ./tests_api.sh
+           
+           
+           # python -m unittest discover -s tests
 
-      - name: Build docker images
-        run: |
-           docker compose build api_gateway
-           docker compose build process_data_service
-           docker compose build build_features_service
-           docker compose build train_model_service
-           docker compose build predict_service
-           docker compose build grafana_service
-           docker compose build prometheus_service
+  #  docker:
+  #    steps:
+  #       runs-on: ubuntu-latest
+  #     - name: build with docker compose
+  #       run: |
+  #                docker compose build api_gateway
+  #                docker compose run api_gateway              
+  #                docker compose build process_data_service
+  #                docker compose run process_data_service
+  #                docker compose build build_features_service
+  #                docker compose run process_data_service
+  #                docker compose build train_model_service
+  #                docker compose run train_model_service
+  #                docker compose build predict_service
+  #                docker compose run predict_service
+  #                docker compose build grafana_service
+  #                docker compose run grafana_service 
+  #                docker compose build prometheus_service 
+  #                docker compose run prometheus_service   
+                 
+
+
