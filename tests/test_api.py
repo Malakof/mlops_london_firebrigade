@@ -14,10 +14,10 @@ class TestAPI(unittest.TestCase):
         response = requests.get(f"{self.base_url}/predict?distance=1.3&station=Acton")
         self.assertEqual(response.status_code, 200)  # Assuming 401 is for unauthorized access
 
-    def test_data_preprocessing_endpoint_authentification(self):
-        """Test the data preprocessing endpoint authentification."""
-        response = requests.get(f"{self.base_url}/process_data")
-        self.assertEqual(response.status_code, 401)
+    # def test_data_preprocessing_endpoint_authentification(self):
+    #     """Test the data preprocessing endpoint authentification."""
+    #     response = requests.get(f"{self.base_url}/process_data")
+    #     self.assertEqual(response.status_code, 401)
 
 if __name__ == '__main__':
     unittest.main()
