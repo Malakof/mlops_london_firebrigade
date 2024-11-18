@@ -27,8 +27,10 @@ jobs:
 
       - name: Activate virtualenv
         run: |
-            python3 -m venv ./venv
-            .venv/bin/activate
+            cd ..
+            ls -l
+            python -m venv ./venv
+            source venv/bin/activate
             echo PATH=$PATH >> $GITHUB_ENV
         
       - name: Linters
@@ -36,7 +38,18 @@ jobs:
         
       - name: Install dependencies
         run: |
+            
             pip install -r requirements.txt
       - name: Test with unitest
         run: |
             python -m unittest discover -s tests
+
+      - name: Build docker images
+        run: |
+           docker compose build api_gateway
+           docker compose build process_data_service
+           docker compose build build_features_service
+           docker compose build train_model_service
+           docker compose build predict_service
+           docker compose build grafana_service
+           docker compose build prometheus_service
