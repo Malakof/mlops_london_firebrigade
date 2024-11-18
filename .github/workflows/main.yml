@@ -46,11 +46,12 @@ jobs:
     
       - name: Test with unitest
         run: |
-            cd ../mlops_london_firebrigade/scripts
-            sudo ./tests_api.sh
-           
-           
-           # python -m unittest discover -s tests
+            cd ../mlops_london_firebrigade
+            python -m unittest tests.test_api
+            python -m unittest tests.test_build_features
+            python -m unittest tests.test_data_processing
+            python -m unittest tests.test_predict_model
+            python -m unittest tests.test_train_model
 
   #  docker:
   #    steps:
