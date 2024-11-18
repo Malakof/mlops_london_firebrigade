@@ -47,7 +47,7 @@ jobs:
       - name: Test with unitest
         run: |
             cd ../mlops_london_firebrigade/scripts
-            ./tests_api.sh
+            sudo ./tests_api.sh
            
            
            # python -m unittest discover -s tests
