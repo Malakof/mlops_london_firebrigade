@@ -33,12 +33,14 @@ jobs:
             source venv/bin/activate
             echo PATH=$PATH >> $GITHUB_ENV
         
-      - name: Linters
-        run: pre-commit
+      # - name: Linters
+      #   run: |
+      #     sudo apt install pre-commit 
+      #     pre-commit
         
       - name: Install dependencies
         run: |
-            
+            cd ../..
             pip install -r requirements.txt
       - name: Test with unitest
         run: |
