@@ -3,6 +3,7 @@ RUN apt-get update && apt-get install -y python3.8 python3.8-distutils python3-p
 RUN ls -l
 WORKDIR /app
 RUN ls -l
+COPY . .
 #COPY ./src/api/api_gateway/requirements.txt .
 #COPY ./src/api/api_gateway/main.py .
 #COPY ./src/api/api_gateway/utils/__init__.py .
