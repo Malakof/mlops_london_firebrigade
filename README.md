@@ -667,7 +667,7 @@ logging.info(f"Model Evaluation Metrics: {metrics}",
     metrics=metrics,
     metric_types=['Gauge', 'Counter', 'Histogram', 'Gauge'])
 ```
-
+![Docker](docker_pompier.jpg)
 ### Setup
 
 **Step 0:** Make sure `PUSH_GETAWAY_ENABLED` is set to `True` and `PUSHGATEWAY_URL` address and port is correct
