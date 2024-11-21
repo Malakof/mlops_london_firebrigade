@@ -1,11 +1,10 @@
 FROM ubuntu:20.04
-RUN apt-get update && apt-get install -y python3.8 python3.8-distutils python3-pip
+RUN apt-get update && apt-get install -y python3.8 python3.8-distutils python3-pip  python3.8-venv
 WORKDIR /app
-COPY ./src/api/microservices/build_features_service/requirements.txt .
-COPY ./src/api/microservices/build_features_service/main.py .
-
-COPY ./src/features ./src/features
-COPY ./src/utils ./src/utils
+# COPY ./src/api/microservices/build_features_service/requirements.txt .
+# COPY ./src/api/microservices/build_features_service/main.py .
+# COPY ./src/features ./src/features
+# COPY ./src/utils ./src/utils
 
 RUN pip3 install --no-cache-dir -r requirements.txt
 ENV LC_ALL=C.UTF-8
