@@ -3,7 +3,8 @@ RUN apt-get update && apt-get install -y python3.8 python3.8-distutils python3-p
 WORKDIR /app
 COPY ./src/api/api_gateway/requirements.txt .
 COPY ./src/api/api_gateway/main.py .
-
+RUN mkdir -p src
+RUN mkdir -p src/utils
 COPY ./src/utils ./src/utils
 
 RUN pip3 install --no-cache-dir -r requirements.txt
