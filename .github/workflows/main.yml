@@ -79,7 +79,8 @@ jobs:
           name: Build and push api_gateway
           uses: docker/build-push-action@v6
           with:
-              context: ../mlops_london_firebrigade/src/api/api_gateway
+              context: ../mlops_london_firebrigade/
+              file: ../mlops_london_firebrigade/src/api/api_gateway/Dockerfile
               push: true
               tags: orvm/mlops_firebrigade:api_gateway-latest
 
