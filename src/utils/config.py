@@ -25,7 +25,7 @@ if not os.path.exists(log_directory):
     os.makedirs(log_directory)
 
 # définition des urls
-url_incident = "https://data.london.gov.uk/download/london-fire-brigade-incident-records/f5066d66-c7a3-415f-9629-026fbda61822/LFB%20Incident%20data%20from%202018%20onwards.csv.xlsx"
+url_incident = "https://data.london.gov.uk/download/london-fire-brigade-incident-records/73728cf4-b70e-48e2-9b97-4e4341a2110d/LFB%20Incident%20data%20from%202009%20-%202017.csv"
 url_mobilisation = "https://data.london.gov.uk/download/london-fire-brigade-mobilisation-records/3ff29fb5-3935-41b2-89f1-38571059237e/LFB%20Mobilisation%20data%202021%20-%202024.xlsx"
 
 # Définition des nom de fichier
@@ -434,7 +434,7 @@ def load_model_and_encoder(run_name):
             logging.info("Model and encoder loaded successfully from MLflow.")
         else:
             # Load the saved machine learning model from disk
-            model = joblib.load(os.path.join(chemin_model, 'model.pkl'))
+            model = joblib.load(os.path.join(chemin_model, fichier_model))
             # Load the saved OneHotEncoder from disk
             encoder = joblib.load(os.path.join(chemin_model, 'onehot_encoder.pkl'))
             logging.info("Model and encoder loaded successfully from local storage.")
