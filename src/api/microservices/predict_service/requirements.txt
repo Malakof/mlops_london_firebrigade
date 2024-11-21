@@ -12,3 +12,4 @@ loguru
 scikit-learn
 numpy
 joblib
+mlflow

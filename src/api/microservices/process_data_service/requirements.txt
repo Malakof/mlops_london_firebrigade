@@ -9,4 +9,5 @@ argparse
 openpyxl
 prometheus_client
 loguru
-
+joblib
+mlflow
