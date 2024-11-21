@@ -87,28 +87,28 @@ jobs:
            name: Build and push predict
            uses: docker/build-push-action@v6
            with:
-              context: ../mlops_london_firebrigade/src/microservices/predict_service
+              context: ../mlops_london_firebrigade/src/api/microservices/predict_service
               push: true
               tags: orvm/mlops_firebrigade:latest
 
         -  name: Build and push process_data
            uses: docker/build-push-action@v6
            with:
-             context: ../mlops_london_firebrigade/src/microservices/process_data_service
+             context: ../mlops_london_firebrigade/src/api/microservices/process_data_service
              push: true
              tags: orvm/mlops_firebrigade:latest
 
         -  name: Build and push train_model
            uses: docker/build-push-action@v6
            with:
-               context: ../mlops_london_firebrigade/src/microservices/train_model_service
+               context: ../mlops_london_firebrigade/src/api/microservices/train_model_service
                push: true
                tags: ${{ secrets.USERNAME }}/orvm/mlops_firebrigade:latest
 
         -  name: Build and push build_features
            uses: docker/build-push-action@v6
            with:
-             context: ../mlops_london_firebrigade/src/microservices/build_features_service
+             context: ../mlops_london_firebrigade/src/api/microservices/build_features_service
              push: true
              tags: orvm/mlops_firebrigade:latest
 
