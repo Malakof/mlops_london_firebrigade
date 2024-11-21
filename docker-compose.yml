@@ -13,6 +13,7 @@ services:
       - build_features_service
       - train_model_service
       - predict_service
+      - mlflow_service
     networks:
       - my_network_for_api
     volumes:
@@ -35,6 +36,8 @@ services:
       - ./data:/app/data
     environment:
       - DOCKER=1
+    depends_on:
+      - mlflow_service
 
   build_features_service:
     build:
@@ -49,6 +52,8 @@ services:
       - ./data:/app/data
     environment:
       - DOCKER=1
+    depends_on:
+      - mlflow_service
 
   train_model_service:
     build:
@@ -64,6 +69,8 @@ services:
       - ./models:/app/models
     environment:
       - DOCKER=1
+    depends_on:
+      - mlflow_service
 
   predict_service:
     build:
@@ -79,7 +86,20 @@ services:
       - ./models:/app/models
     environment:
       - DOCKER=1
+    depends_on:
+      - mlflow_service
 
+  mlflow_service:
+    build:
+      context: .
+      dockerfile: ./src/monitoring/mlflow/Dockerfile
+    ports:
+      - "9092:9092"
+    networks:
+      - my_network_for_api
+    
+
+    
   
   # grafana_service:
   #   image: grafana/grafana:latest
