@@ -680,6 +680,7 @@ logging.info(f"Model Evaluation Metrics: {metrics}",
     metrics=metrics,
     metric_types=['Gauge', 'Counter', 'Histogram', 'Gauge'])
 ```
+![Docker](docker_pompier.jpg)
 
 ### Setup
 
