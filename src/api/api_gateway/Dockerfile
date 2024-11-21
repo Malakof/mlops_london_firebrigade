@@ -5,7 +5,7 @@ COPY ./src/api/api_gateway/requirements.txt .
 COPY ./src/api/api_gateway/main.py .
 RUN mkdir -p src
 RUN mkdir -p src/utils
-COPY ./src/utils ./src/utils
+COPY ./src/utils/ /src/utils/
 
 RUN pip3 install --no-cache-dir -r requirements.txt
 ENV LC_ALL=C.UTF-8
