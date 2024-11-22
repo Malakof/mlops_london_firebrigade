@@ -680,7 +680,7 @@ logging.info(f"Model Evaluation Metrics: {metrics}",
     metrics=metrics,
     metric_types=['Gauge', 'Counter', 'Histogram', 'Gauge'])
 ```
-![Docker](docker_pompier.jpg)
+
 
 ### Setup
 
@@ -813,6 +813,13 @@ Ensure that the following parameters are properly set in `config.py` to enable M
 Integrating MLflow helps in managing the lifecycle of machine learning models effectively, from logging experiments to serving predictions using the best models. This project demonstrates a practical implementation of these capabilities.
 
 ## Dockerisation
+![Docker](docker_pompier.jpg)
 
+In order to start building the images and activate the containers, go to the root of the project and run the following command:
+
+```bash
+docker-compose build
+docker-compose up
+```
 
 
