@@ -3,7 +3,8 @@ RUN apt-get update && apt-get install -y python3.8 python3.8-distutils python3-p
 RUN ls -l
 WORKDIR /app
 COPY . .
-COPY ./src/utils /app/src
+RUN mkdir /app/src/utils
+COPY ./src/utils /app/src/utils
 RUN ls -l /app
 
 RUN python3 -m venv ./venv
