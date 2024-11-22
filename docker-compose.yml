@@ -97,7 +97,9 @@ services:
       - "9092:9092"
     networks:
       - my_network_for_api
-    
+    volumes:
+      - ./data-mlflow:/app
+
   
   grafana_service:
     image: grafana/grafana:latest
