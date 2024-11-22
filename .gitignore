@@ -180,7 +180,8 @@ dataset/*.csv
 # Richard
 /data/raw/
 /data/processed/
-/data/prometheus/
+/data/prometheus/*
+!/data/prometheus/info.txt
 /mlflow-artifacts/
 /mlruns/
 /mlflow.db
