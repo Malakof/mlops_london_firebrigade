@@ -98,17 +98,15 @@ services:
     networks:
       - my_network_for_api
     
-
-    
   
-  # grafana_service:
-  #   image: grafana/grafana:latest
-  #   container_name: grafana
-  #   ports:
-  #     - '3000:3000'
-  #   restart: unless-stopped
-  #   volumes:
-  #     - grafana-data:/var/lib/grafana
+  grafana_service:
+    image: grafana/grafana:latest
+    container_name: grafana_service
+    ports:
+      - '3000:3000'
+    restart: unless-stopped
+    volumes:
+      - ./data/grafana:/var/lib/grafana
 
   prometheus_service:
     image: prom/prometheus:latest
