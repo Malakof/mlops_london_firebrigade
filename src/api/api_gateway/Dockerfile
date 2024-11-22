@@ -5,7 +5,7 @@ WORKDIR /app
 COPY . .
 RUN python3 -m venv ./venv
 RUN . venv/bin/activate
-RUN pip install --index-url https://test.pypi.org/simple/ --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
