@@ -817,7 +817,10 @@ Integrating MLflow helps in managing the lifecycle of machine learning models ef
 
 In order to start building the images and activate the containers, go to the root of the project and run the following command:
 
+In order to give rights to data volumes for Grafana and Prometheus, you must execute the init.sh script first.
+
 ```bash
+./init.sh
 docker-compose build
 docker-compose up
 ```
