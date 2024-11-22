@@ -327,7 +327,7 @@ specifying paths dynamically.
      -H 'Content-Type: application/json' \
      -d '{
        "data_path": "./data/global_data.csv",
-       "ml_model_path": "./models/linear_regresion_model.pkl",
+       "ml_model_path": "./models/linear_regression_model.pkl",
        "encoder_path": "./models/onehot_encoder.pkl"
      }'
    ```
