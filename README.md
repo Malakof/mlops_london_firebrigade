@@ -318,6 +318,19 @@ specifying paths dynamically.
        "encoder_path": "/path/to/encoder.pkl"
      }'
    ```
+   
+   exemple:
+   ```bash
+   curl -X 'POST' \
+     'http://127.0.0.1:8000/train_model' \
+     -u 'admin:fireforce' \
+     -H 'Content-Type: application/json' \
+     -d '{
+       "data_path": "./data/global_data.csv",
+       "ml_model_path": "./models/linear_regresion_model.pkl",
+       "encoder_path": "./models/onehot_encoder.pkl"
+     }'
+   ```
 
 This API endpoint facilitates the on-demand training of models, making it an integral part of MLOps strategies that
 prioritize automation and flexibility.
@@ -668,6 +681,7 @@ logging.info(f"Model Evaluation Metrics: {metrics}",
     metric_types=['Gauge', 'Counter', 'Histogram', 'Gauge'])
 ```
 ![Docker](docker_pompier.jpg)
+
 ### Setup
 
 **Step 0:** Make sure `PUSH_GETAWAY_ENABLED` is set to `True` and `PUSHGATEWAY_URL` address and port is correct

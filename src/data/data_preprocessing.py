@@ -119,7 +119,8 @@ def _read_and_filter_data(filepath, year_column, years=None):
     filename_without_extension = '_'.join(
         os.path.basename(filepath).split('.')[0].replace(' ', '_').split('_')[:2])
     try:
-        data = pd.read_excel(filepath, engine='openpyxl')
+        #data = pd.read_excel(filepath, engine='openpyxl')
+        data = pd.read_csv(filepath)
         initial_count = len(data)
         if years:
             # Filter the data by the specified years

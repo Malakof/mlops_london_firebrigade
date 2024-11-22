@@ -9,6 +9,6 @@ argparse
 openpyxl
 prometheus_client
 loguru
-
 scikit-learn
 joblib
+mlflow

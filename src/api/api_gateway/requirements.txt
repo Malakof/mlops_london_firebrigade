@@ -4,3 +4,5 @@ httpx
 typing
 prometheus_client
 loguru
+joblib
+mlflow
