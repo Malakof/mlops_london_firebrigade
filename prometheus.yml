@@ -1,6 +1,6 @@
 global:
   scrape_interval: 15s
 scrape_configs:
-  - job_name: 'prometheus'
+  - job_name: 'firebrigade_model'
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ['pushgateway_service:9091']
