@@ -124,6 +124,8 @@ services:
     command:
       - '--web.enable-lifecycle'
       - '--config.file=/etc/prometheus/prometheus.yml'
+    depends_on:
+      - pushgateway_service
 
   pushgateway_service:
     image: prom/pushgateway  
