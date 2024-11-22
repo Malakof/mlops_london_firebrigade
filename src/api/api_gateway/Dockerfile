@@ -4,7 +4,7 @@ RUN ls -l
 WORKDIR /app
 RUN ls -l
 COPY . .
-COPY /mlops_london_firebrigade/src/utils /app/
+COPY ./src/utils /app/
 RUN python3 -m venv ./venv
 RUN . venv/bin/activate
 RUN pip install --index-url https://test.pypi.org/simple/ --no-cache-dir -r requirements.txt
