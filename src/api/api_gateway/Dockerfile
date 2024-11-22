@@ -4,10 +4,7 @@ RUN ls -l
 WORKDIR /app
 RUN ls -l
 COPY . .
-#COPY ./src/api/api_gateway/requirements.txt .
-#COPY ./src/api/api_gateway/main.py .
-#COPY ./src/api/api_gateway/utils/__init__.py .
-#COPY ./src/api/api_gateway/utils/config.py .
+COPY /mlops_london_firebrigade/src/utils /app/
 RUN python3 -m venv ./venv
 RUN . venv/bin/activate
 RUN pip install --index-url https://test.pypi.org/simple/ --no-cache-dir -r requirements.txt
