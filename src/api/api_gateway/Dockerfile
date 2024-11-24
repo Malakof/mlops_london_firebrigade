@@ -1,5 +1,6 @@
 FROM ubuntu:20.04
 RUN apt-get update && apt-get install -y python3.8 python3.8-distutils python3-pip
+
 WORKDIR /app
 COPY ./src/api/api_gateway/requirements.txt .
 COPY ./src/api/api_gateway/main.py .

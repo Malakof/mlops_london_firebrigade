@@ -178,6 +178,8 @@ def build_features():
         df_incident, df_mobilisation = _clean_data(df_incident, df_mobilisation, df_stations)
         # Merge datasets
         df_merged = _merge_datasets(df_incident, df_mobilisation)
+        #echantillonage pour simuler la variabilité des données
+        df_merged = df_merged.sample(frac=0.7)
         # Save merged data
         _save_data(df_merged)
 
