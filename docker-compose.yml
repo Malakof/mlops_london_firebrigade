@@ -135,7 +135,5 @@ services:
     networks:
       - my_network_for_api
 
-networks:
-  my_network_for_api:
 
   
