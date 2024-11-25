@@ -39,16 +39,39 @@ jobs:
       #     sudo apt install pre-commit 
       #     pre-commit
         
-      - name: Install dependencies
-        run: |
-            cd ../mlops_london_firebrigade
-            pip3 install -r requirements.txt
-    
-      - name: Test with unitest (only processing data for now)
+  
+      - name: Install dependencies and Test with unitest process_data
         run: |
             cd ../mlops_london_firebrigade/src/api/microservices/process_data_service
+            python3 -m venv ./venv
+            source venv/bin/activate
             pip3 install --no-cache-dir -r requirements.txt
             python3 test_data_processing.py
+
+      
+      - name: Install dependencies and Test with unitest train_model
+        run: |
+            cd ../mlops_london_firebrigade/src/api/microservices/train_model_service
+            python3 -m venv ./venv
+            source venv/bin/activate
+            pip3 install --no-cache-dir -r requirements.txt
+            python3 test_train_model.py
+
+      - name: Install dependencies and Test with unitest predict_service
+        run: |
+            cd ../mlops_london_firebrigade/src/api/microservices/predict_service
+            python3 -m venv ./venv
+            source venv/bin/activate
+            pip3 install --no-cache-dir -r requirements.txt
+            python3 test_predict_model.py
+
+      - name: Install dependencies and Test with unitest build_features
+        run: |
+            cd ../mlops_london_firebrigade/src/api/microservices/build_features_service
+            python3 -m venv ./venv
+            source venv/bin/activate
+            pip3 install --no-cache-dir -r requirements.txt
+            python3 test_build_features.py
 
 
 
