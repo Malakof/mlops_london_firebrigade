@@ -82,8 +82,8 @@ CONSOLE_LEVEL = logging.DEBUG
 HISTORY_LEVEL = logging.DEBUG
 from prometheus_client import CollectorRegistry
 
-PUSH_GETAWAY_ENABLED = True
-PUSHGATEWAY_URL = 'http://pushgateway_service:9091'
+PUSH_GETAWAY_ENABLED = False
+PUSHGATEWAY_URL = 'http://prometheus_service:9091'
 
 USE_MLFLOW = True  # This can be toggled to enable/disable MLflow integration
 MLFLOW_TRACKING_URI = 'http://mlflow_service:9092'  # URI to MLflow tracking server
