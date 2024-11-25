@@ -40,3 +40,6 @@ docker run orvm/mlops_firebrigade:predict_service-latest
 docker pull orvm/mlops_firebrigade:api_gateway-latest
 docker run orvm/mlops_firebrigade:api_gateway-latest
 #Once api_gateway is UP then you can navigate to http://localhost:8000
+
+#@aolfa TODO RUN mlflow service
+#`mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlflow-artifacts --host 0.0.0.0 --port 9092`
