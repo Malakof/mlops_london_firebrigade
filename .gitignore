@@ -183,8 +183,8 @@ dataset/*.csv
 /data/prometheus/*
 !/data/prometheus/info.txt
 /data/grafana
-!/data/grafana/info.txt
-/data-mlflow/
+/data/grafana/info.txt
+/mlflow-artifacts/
 /mlruns/
 /mlflow.db
 /models
