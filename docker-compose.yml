@@ -108,7 +108,7 @@ services:
       - '3000:3000'
     restart: unless-stopped
     volumes:
-      - ./data/grafana:/var/lib/grafana
+      - ./data-grafana:/var/lib/grafana
 
   prometheus_service:
     image: prom/prometheus:latest
@@ -120,20 +120,12 @@ services:
     restart: unless-stopped
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./data/prometheus:/prometheus/data
+      - ./data-prometheus:/prometheus/data
     command:
       - '--web.enable-lifecycle'
       - '--config.file=/etc/prometheus/prometheus.yml'
     depends_on:
       - pushgateway_service
-
-  pushgateway_service:
-    image: prom/pushgateway  
-    container_name: pushgateway_service
-    ports:
-      - "9091:9091"
-    networks:
-      - my_network_for_api
 
   pushgateway_service:
     image: prom/pushgateway  
