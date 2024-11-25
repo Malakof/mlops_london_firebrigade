@@ -184,7 +184,7 @@ dataset/*.csv
 !/data/prometheus/info.txt
 /data/grafana
 !/data/grafana/info.txt
-/data-mlflow/
+/mlflow-artifacts/
 /mlruns/
 /mlflow.db
 /models
