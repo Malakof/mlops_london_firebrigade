@@ -46,15 +46,9 @@ jobs:
     
       - name: Test with unitest
         run: |
-            cd ../mlops_london_firebrigade
-
-          # python3 -m http.server
-          # python3 -m unittest tests.test_api
-
-          # python3 -m unittest tests.test_build_features
-          # python3 -m unittest tests.test_data_processing
-          # python3 -m unittest tests.test_predict_model
-          # python3 -m unittest tests.test_train_model
+            cd ../mlops_london_firebrigade/scripts
+            chmod +x tests_api.sh 
+            ./tests_api.sh 
 
 
   build:
