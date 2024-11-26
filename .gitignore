@@ -180,10 +180,8 @@ dataset/*.csv
 # Richard
 /data/raw/
 /data/processed/
-/data/prometheus/*
-!/data/prometheus/info.txt
-/data/grafana
-!/data/grafana/info.txt
+/data-prometheus/
+/data-grafana/
 /data-mlflow/
 /mlruns/
 /mlflow.db
