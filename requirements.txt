@@ -151,4 +151,3 @@ gunicorn~=23.0.0
 graphql-relay~=3.2.0
 Deprecated~=1.2.15
 wrapt~=1.16.0
-xmlrunner
