@@ -23,6 +23,8 @@ services:
       - ./models:/app/models
     environment:
       - DOCKER=1
+      - PUSH_GETAWAY_ENABLED=True
+      - USE_MLFLOW=True
 
   process_data_service:
     build:
@@ -37,6 +39,8 @@ services:
       - ./data:/app/data
     environment:
       - DOCKER=1
+      - PUSH_GETAWAY_ENABLED=True
+      - USE_MLFLOW=True
     depends_on:
       - mlflow_service
 
@@ -53,6 +57,8 @@ services:
       - ./data:/app/data
     environment:
       - DOCKER=1
+      - PUSH_GETAWAY_ENABLED=True
+      - USE_MLFLOW=True
     depends_on:
       - mlflow_service
 
@@ -70,6 +76,8 @@ services:
       - ./models:/app/models
     environment:
       - DOCKER=1
+      - PUSH_GETAWAY_ENABLED=True
+      - USE_MLFLOW=True
     depends_on:
       - mlflow_service
 
@@ -87,6 +95,8 @@ services:
       - ./models:/app/models
     environment:
       - DOCKER=1
+      - PUSH_GETAWAY_ENABLED=True
+      - USE_MLFLOW=True
     depends_on:
       - mlflow_service
 
@@ -138,3 +148,4 @@ services:
 
 networks:
   my_network_for_api:
+
