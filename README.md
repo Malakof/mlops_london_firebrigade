@@ -136,7 +136,7 @@ python data_preprocessing.py [options]
    python data_preprocessing.py --convert-to-pickle
    ```
 
-#### API Integration
+#### API process_data Testing
 
 ##### `/process_data` Endpoint
 
@@ -203,7 +203,7 @@ python build_features.py
 
 This command will execute the feature building process using predefined settings specified in the script.
 
-#### API Integration
+#### API build_features Testing
 
 ##### `/build_features` Endpoint
 
@@ -280,7 +280,7 @@ python train_model.py [options]
    python train_model.py --data_path '/path/to/data.csv' --ml_model_path '/path/to/model.pkl' --encoder_path '/path/to/encoder.pkl'
    ```
 
-#### API Integration
+#### API train Testing
 
 ##### `/train_model` Endpoint
 
@@ -375,7 +375,7 @@ python predict_model.py [options]
    python predict_model.py --distance 5.2 --station 'Acton'
    ```
 
-#### API Integration
+#### API predict testing
 
 ##### `/predict` Endpoint
 
@@ -465,39 +465,72 @@ python -m unittest discover -s tests
 
 This command will discover all test files in the `tests` directory and execute them.
 
-### Running Tests via GitHub Actions / CI / CD
+## Integration and GitHub Actions / CI / CD
 
 To run these tests automatically via GitHub Actions, include the following steps in your `.github/workflows/main.yml`
 file:
-NOT TESTED
+
+TESTED
 
 ```yaml
 name: Python application
 
-on: [ push, pull_request ]
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+
+  checkout-test:
+
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
         with:
-          python-version: '3.8'
+          python-version: "3.10"
+  
+
+      - name: Activate virtualenv
+        run: |
+            cd ..
+            ls -l
+            python3 -m venv ./venv
+            source venv/bin/activate
+            echo PATH=$PATH >> $GITHUB_ENV
+        
+      # - name: Linters
+      #   run: |
+      #     sudo apt install pre-commit 
+      #     pre-commit
+        
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Run tests
+            cd ../mlops_london_firebrigade
+            pip3 install -r requirements.txt
+    
+      - name: Test with unitest
         run: |
-          python -m unittest discover -s tests
+            cd ../mlops_london_firebrigade/scripts
+            chmod +x tests_api.sh 
+            ./tests_api.sh 
+
 ```
 
 This workflow configures GitHub Actions to install Python, install all necessary dependencies, and then run the unit
 tests whenever changes are pushed or pull requests are made to the repository.
 
-## Logging Framework Documentation
+## RUN, monitoring and vizualisation
+
+### First RUN
+
+### Logging Framework Documentation
 
 This guide provides an overview of the logging framework implemented within the project. The logging setup is designed
 to capture detailed logs across different modules of the application, ensuring that all significant events, errors, and
