@@ -857,5 +857,3 @@ In order to give rights to data volumes for Grafana and Prometheus, you must exe
 docker-compose build
 docker-compose up
 ```
-
-
