@@ -123,6 +123,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./data-grafana:/var/lib/grafana
+    depends_on:
+      - prometheus_service
 
   prometheus_service:
     image: prom/prometheus:latest
