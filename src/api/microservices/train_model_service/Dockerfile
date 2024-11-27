@@ -1,4 +1,5 @@
-FROM python:3.12-slim
+# Use the custom base image
+FROM myapp/base:latest
 # RUN apt-get update && apt-get install -y python3.12 python3.12-distutils python3-pip
 WORKDIR /app
 COPY ./src/api/microservices/train_model_service/requirements.txt .

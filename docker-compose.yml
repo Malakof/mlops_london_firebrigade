@@ -2,7 +2,13 @@
 version: '3.12'
 
 services:
-  
+  base_image:
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+    image: myapp/base:latest  # Explicitly tag the built image
+    # No command or ports needed, as we do not need to run this service
+
   api_gateway:
     build:
       context: .
@@ -10,6 +16,7 @@ services:
     ports:
       - "8000:8000"
     depends_on:
+      - base_image
       - process_data_service
       - build_features_service
       - train_model_service
@@ -42,6 +49,7 @@ services:
       - PUSH_GATEWAY_ENABLED=True
       # - MLFLOW_ENABLED=True
     depends_on:
+      - base_image
       - pushgateway_service
 
   build_features_service:
@@ -60,6 +68,7 @@ services:
       - PUSH_GATEWAY_ENABLED=True
       # - MLFLOW_ENABLED=True
     depends_on:
+      - base_image
       - pushgateway_service
 
 
@@ -80,6 +89,7 @@ services:
       - PUSH_GATEWAY_ENABLED=True
       - MLFLOW_ENABLED=True
     depends_on:
+      - base_image
       - pushgateway_service
       - mlflow_service
 
@@ -100,6 +110,7 @@ services:
       - PUSH_GATEWAY_ENABLED=True
       - MLFLOW_ENABLED=True
     depends_on:
+      - base_image
       - pushgateway_service
       - mlflow_service
 
@@ -114,7 +125,6 @@ services:
     volumes:
       - ./data-mlflow:/app
 
-  
   grafana_service:
     image: grafana/grafana:latest
     container_name: grafana_service
