@@ -1,0 +1,130 @@
+version: '3.12'
+
+services:
+  api_gateway:
+    image: rs232gaming/mlops_london_firebrigade:api-gateway-latest
+    ports:
+      - "8000:8000"
+    depends_on:
+      - process_data_service
+      - build_features_service
+      - train_model_service
+      - predict_service
+      - mlflow_service
+    networks:
+      - my_network_for_api
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./models:/app/models
+    environment:
+      - DOCKER=1
+      - PUSH_GATEWAY_ENABLED=True
+
+  process_data_service:
+    image: rs232gaming/mlops_london_firebrigade:process-data-latest
+    ports:
+      - "8001:8001"
+    networks:
+      - my_network_for_api
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    environment:
+      - DOCKER=1
+      - PUSH_GATEWAY_ENABLED=True
+    depends_on:
+      - pushgateway_service
+
+  build_features_service:
+    image: rs232gaming/mlops_london_firebrigade:build-features-latest
+    ports:
+      - "8002:8002"
+    networks:
+      - my_network_for_api
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    environment:
+      - DOCKER=1
+      - PUSH_GATEWAY_ENABLED=True
+    depends_on:
+      - pushgateway_service
+
+  train_model_service:
+    image: rs232gaming/mlops_london_firebrigade:train-model-latest
+    ports:
+      - "8003:8003"
+    networks:
+      - my_network_for_api
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./models:/app/models
+    environment:
+      - DOCKER=1
+      - PUSH_GATEWAY_ENABLED=True
+      - MLFLOW_ENABLED=True
+    depends_on:
+      - pushgateway_service
+      - mlflow_service
+
+  predict_service:
+    image: rs232gaming/mlops_london_firebrigade:predict-service-latest
+    ports:
+      - "8004:8004"
+    networks:
+      - my_network_for_api
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./models:/app/models
+    environment:
+      - DOCKER=1
+      - PUSH_GATEWAY_ENABLED=True
+      - MLFLOW_ENABLED=True
+    depends_on:
+      - pushgateway_service
+      - mlflow_service
+
+  mlflow_service:
+    image: rs232gaming/mlops_london_firebrigade:mlflow-latest
+    ports:
+      - "9092:9092"
+    networks:
+      - my_network_for_api
+    volumes:
+      - ./data-mlflow:/app
+
+  grafana_service:
+    image: grafana/grafana:latest
+    ports:
+      - '3000:3000'
+    networks:
+      - my_network_for_api
+    volumes:
+      - ./data-grafana:/var/lib/grafana
+    depends_on:
+      - prometheus_service
+
+  prometheus_service:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    networks:
+      - my_network_for_api
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./data-prometheus:/prometheus/data
+    depends_on:
+      - pushgateway_service
+
+  pushgateway_service:
+    image: prom/pushgateway
+    ports:
+      - "9091:9091"
+    networks:
+      - my_network_for_api
+
+networks:
+  my_network_for_api:
