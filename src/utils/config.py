@@ -82,11 +82,22 @@ CONSOLE_LEVEL = logging.DEBUG
 HISTORY_LEVEL = logging.DEBUG
 from prometheus_client import CollectorRegistry
 
-PUSH_GETAWAY_ENABLED = True
-PUSHGATEWAY_URL = 'http://pushgateway_service:9091'
+# Environment variable handling for Push Gateway
+PUSH_GATEWAY_ENABLED = os.getenv('PUSH_GATEWAY_ENABLED', 'False').lower() in ('true', 'True', '1', 't')
+if PUSH_GATEWAY_ENABLED:
+    PUSHGATEWAY_URL = os.getenv('PUSHGATEWAY_URL', 'http://pushgateway_service:9091')
+else:
+    PUSHGATEWAY_URL = 'http://pushgateway_service:9091'
+    logging.warning(f"PUSH_GATEWAY_ENABLED is False or not present and will be DEACTIVATED")
 
-USE_MLFLOW = True  # This can be toggled to enable/disable MLflow integration
-MLFLOW_TRACKING_URI = 'http://mlflow_service:9092'  # URI to MLflow tracking server
+# Environment variable handling for MLflow
+MLFLOW_ENABLED = os.getenv('MLFLOW_ENABLED', 'False').lower() in ('true', 'True', '1', 't')
+if MLFLOW_ENABLED:
+    MLFLOW_TRACKING_URI = os.getenv('MLFLOW_TRACKING_URI', 'http://mlflow_service:9092')
+else:
+    MLFLOW_TRACKING_URI = 'http://mlflow_service:9092'
+    logging.warning(f"MLFLOW_ENABLED is False or not present and will be DEACTIVATED")
+
 MLFLOW_EXPERIMENT_NAME = 'LFB_MLOPS'  # Name of the MLflow experiment
 
 # Metrics definitions
@@ -105,11 +116,7 @@ class MetricsLogger:
             module: The name of the module where metrics are being logged.
             registry: An optional CollectorRegistry instance for registering metrics.
                       If not provided, a new CollectorRegistry is created.
-            pushgateway_enabled: A boolean indicating if the Pushgateway is enabled for pushing metrics.
-
-        Attributes:
-            metrics_dict: A dictionary to store metrics.
-            job_id: A unique job ID for each instance, composed of the current timestamp and a UUID.
+            pushgateway_enabled: A boolean indicating if the Pushgateway is enabled for pushing metrics to prometheus.
         """
         self.logger = logger
         self.module = module
@@ -344,7 +351,7 @@ class LoggingMetricsManager(metaclass=SingletonMeta):
 
             # Each module gets its own MetricsLogger instance with the module name passed
             loggers[module] = MetricsLogger(logger, module, registry=self.registry,
-                                            pushgateway_enabled=PUSH_GETAWAY_ENABLED)
+                                            pushgateway_enabled=PUSH_GATEWAY_ENABLED)
 
         # Configure console and history logging
         console_handler = logging.StreamHandler()
@@ -406,13 +413,13 @@ def load_model_and_encoder(run_name):
     Load the machine learning model and encoder either from local disk or MLflow based on configuration.
 
     Args:
-        run_name (str): The name of the MLflow run from which to load the model, used only if USE_MLFLOW is True.
+        run_name (str): The name of the MLflow run from which to load the model, used only if MLFLOW_ENABLED is True.
 
     Returns:
         tuple: A tuple containing the loaded model and encoder objects.
     """
     try:
-        if USE_MLFLOW:
+        if MLFLOW_ENABLED:
             mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
             mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 

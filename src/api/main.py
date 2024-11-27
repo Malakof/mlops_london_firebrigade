@@ -19,7 +19,6 @@ logging.info("api Logger loaded")
 # Generate a warning to test
 warnings.warn("This is a api TEST warning", UserWarning)
 
-
 app = FastAPI(title="London Fire Brigade MLOPS API",
               description="API for London Fire Brigade incident prediction model",
               version="1.0.0")
@@ -37,6 +36,7 @@ class DataProcessingRequest(BaseModel):
     data_types: List[str] = Field(..., description="List of data types to process: 'incident' or 'mobilisation'")
     convert_to_pickle: bool = Field(False, description="Whether to convert data to pickle format")
 
+
 class TrainModelRequest(BaseModel):
     data_path: str = Field(..., description="Path to the dataset CSV file")
     ml_model_path: str = Field(..., description="Path to save the trained model")
@@ -45,6 +45,7 @@ class TrainModelRequest(BaseModel):
 
 class PredictionResponse(BaseModel):
     predicted_attendance_time: float = Field(..., description="Predicted attendance time in seconds")
+
 
 # Authentication function
 def authenticate_user(credentials: HTTPBasicCredentials = Depends(security)):
@@ -122,8 +123,8 @@ async def process_data(
 
 
 @app.get("/build_features",
-          summary="Build features from processed data",
-          response_model=Dict[str, str])
+         summary="Build features from processed data",
+         response_model=Dict[str, str])
 async def build_features_endpoint(username: str = Depends(authenticate_user)):
     try:
         build_features.build_features()
@@ -146,10 +147,10 @@ async def train_model_endpoint(request: TrainModelRequest, username: str = Depen
 
 
 @app.get("/predict",
-          summary="Make a prediction using the trained model",
-          response_model=PredictionResponse)
+         summary="Make a prediction using the trained model",
+         response_model=PredictionResponse)
 async def predict(distance: float = Query(..., description="Distance to the incident in kilometers"),
-            station: str = Query(..., description="Departing station name")):
+                  station: str = Query(..., description="Departing station name")):
     try:
         if not (distance and station):
             raise ValueError("Invalid data_type. Distance and/or station missing")
@@ -181,6 +182,8 @@ async def health_check():
         logging.error(f"Error in health check: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -11,7 +11,7 @@ from sklearn.preprocessing import OneHotEncoder
 
 from src.utils import config as cfg
 from src.utils.config import LoggingMetricsManager, log_model, start_mlflow_session
-from src.utils.config import USE_MLFLOW
+from src.utils.config import MLFLOW_ENABLED
 
 # Get the logger for model training
 logging = LoggingMetricsManager().metrics_loggers['train_model']
@@ -170,7 +170,7 @@ def train_pipeline(data_path, model_path, encoder_path):
         metrics = _evaluate_model(model, X_test, y_test)
         logging.info(f"Model Evaluation Metrics: {metrics}", metrics=metrics)
         # Log model and metrics in MLflow if enabled
-        if USE_MLFLOW:
+        if MLFLOW_ENABLED:
             start_mlflow_session(cfg.MLFLOW_EXPERIMENT_NAME, cfg.MLFLOW_TRACKING_URI)
             log_model(model, encoder, "LFB_MLOPS_Model", model_path, encoder_path, metrics)
 

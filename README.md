@@ -663,7 +663,7 @@ API configuration. Below is a detailed explanation of each parameter:
 
 #### Prometheus and Pushgateway Setup
 - `PUSHGATEWAY_URL` sets the URL of the Pushgateway.
-- `PUSH_GETAWAY_ENABLED` enables or disables the metrics logging.
+- `PUSH_GATEWAY_ENABLED` enables or disables the metrics logging.
 
 ### Usage
 
@@ -687,11 +687,11 @@ Each run of a script generates metrics that are pushed in a batch to the Pushgat
 - Configuration:
 
 `PUSHGATEWAY_URL` in `config.py` sets the URL of the Pushgateway.
-`PUSH_GETAWAY_ENABLED` in `config.py` enables or disables the metrics logging.
+`PUSH_GATEWAY_ENABLED` in `config.py` enables or disables the metrics logging.
 
 Logging and Metrics: the **MetricsLogger** class extends the standard logging functionality to include metrics logging. Each log message can optionally include associated metrics that are recorded and pushed to the Pushgateway to be scraped by prometheus.
 
-The code below demonstrates how to use the MetricsLogger to log messages and push metrics. Metrics are pushed **only if** the config parameter `PUSH_GETAWAY_ENABLED` is set to `True`.
+The code below demonstrates how to use the MetricsLogger to log messages and push metrics. Metrics are pushed **only if** the config parameter `PUSH_GATEWAY_ENABLED` is set to `True`.
 
 ```
 from src.utils.config import LoggingMetricsManager
@@ -699,7 +699,7 @@ from src.utils.config import LoggingMetricsManager
 logging = LoggingMetricsManager().metrics_loggers['train_model']
 
 # This line ALSO increments the info counter 
-# in prometheus metrics if PUSH_GETAWAY_ENABLED is True
+# in prometheus metrics if PUSH_GATEWAY_ENABLED is True
 logging.info("train_model Logger loaded")
 
 # Several metrics logging and increment of info counter
@@ -717,7 +717,7 @@ logging.info(f"Model Evaluation Metrics: {metrics}",
 
 ### Setup
 
-**Step 0:** Make sure `PUSH_GETAWAY_ENABLED` is set to `True` and `PUSHGATEWAY_URL` address and port is correct
+**Step 0:** Make sure `PUSH_GATEWAY_ENABLED` is set to `True` and `PUSHGATEWAY_URL` address and port is correct
 
 **Step 1:** Run pushgateway through docker
 
