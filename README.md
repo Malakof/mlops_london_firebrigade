@@ -29,6 +29,9 @@ deployment rather than just the model's performance.
     - `test_train_model.py` - Unit tests for model training processes.
     - `test_predict_model.py` - Unit tests for prediction functionalities.
     - `test_api.py` - Unit tests for API endpoint functionalities.
+- `docker-compose.yml` - Docker configuration file (dev).
+- `docker-compose.prod.yml` - Docker configuration file (prod).
+
 
 ### Main Components
 
