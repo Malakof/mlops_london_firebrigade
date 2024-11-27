@@ -24,7 +24,7 @@ services:
     environment:
       - DOCKER=1
       - PUSH_GATEWAY_ENABLED=True
-      - MLFLOW_ENABLED=True
+      # - MLFLOW_ENABLED=True
 
   process_data_service:
     build:
@@ -40,9 +40,9 @@ services:
     environment:
       - DOCKER=1
       - PUSH_GATEWAY_ENABLED=True
-      - MLFLOW_ENABLED=True
+      # - MLFLOW_ENABLED=True
     depends_on:
-      - mlflow_service
+      - pushgateway_service
 
   build_features_service:
     build:
@@ -58,9 +58,10 @@ services:
     environment:
       - DOCKER=1
       - PUSH_GATEWAY_ENABLED=True
-      - MLFLOW_ENABLED=True
+      # - MLFLOW_ENABLED=True
     depends_on:
-      - mlflow_service
+      - pushgateway_service
+
 
   train_model_service:
     build:
@@ -79,6 +80,7 @@ services:
       - PUSH_GATEWAY_ENABLED=True
       - MLFLOW_ENABLED=True
     depends_on:
+      - pushgateway_service
       - mlflow_service
 
   predict_service:
@@ -98,6 +100,7 @@ services:
       - PUSH_GATEWAY_ENABLED=True
       - MLFLOW_ENABLED=True
     depends_on:
+      - pushgateway_service
       - mlflow_service
 
   mlflow_service:

@@ -5,7 +5,7 @@ import warnings
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
-
+# TODO: Find a way to remove this
 if os.environ.get('DOCKER') == '1':
     #pour docker
     chemin_data = 'data'
@@ -13,13 +13,16 @@ if os.environ.get('DOCKER') == '1':
     chemin_model = 'models'
     # Define the log directory and make sure it exists
     log_directory = 'logs'
+    DEFAULT_PUSHGATEWAY_URL = 'http://pushgateway_service:9091'
+    DEFAULT_MLFLOW_TRACKING_URI = 'http://mlflow_service:9092'
 else:
     chemin_data = '../../data'
     chemin_data_ref = '../../data/ref'
     chemin_model = '../../models'
     # Define the log directory and make sure it exists
     log_directory = '../../logs'
-
+    DEFAULT_PUSHGATEWAY_URL = 'http://127.0.0.1:9091'
+    DEFAULT_MLFLOW_TRACKING_URI = 'http://127.0.0.1:5000'
 
 if not os.path.exists(log_directory):
     os.makedirs(log_directory)
@@ -82,22 +85,20 @@ CONSOLE_LEVEL = logging.DEBUG
 HISTORY_LEVEL = logging.DEBUG
 from prometheus_client import CollectorRegistry
 
+
 # Environment variable handling for Push Gateway
 PUSH_GATEWAY_ENABLED = os.getenv('PUSH_GATEWAY_ENABLED', 'False').lower() in ('true', 'True', '1', 't')
 if PUSH_GATEWAY_ENABLED:
-    PUSHGATEWAY_URL = os.getenv('PUSHGATEWAY_URL', 'http://pushgateway_service:9091')
+    PUSHGATEWAY_URL = os.getenv('PUSHGATEWAY_URL', DEFAULT_PUSHGATEWAY_URL)
 else:
-    PUSHGATEWAY_URL = 'http://pushgateway_service:9091'
     logging.warning(f"PUSH_GATEWAY_ENABLED is False or not present and will be DEACTIVATED")
 
 # Environment variable handling for MLflow
 MLFLOW_ENABLED = os.getenv('MLFLOW_ENABLED', 'False').lower() in ('true', 'True', '1', 't')
 if MLFLOW_ENABLED:
-    MLFLOW_TRACKING_URI = os.getenv('MLFLOW_TRACKING_URI', 'http://mlflow_service:9092')
+    MLFLOW_TRACKING_URI = os.getenv('MLFLOW_TRACKING_URI', DEFAULT_MLFLOW_TRACKING_URI)
 else:
-    MLFLOW_TRACKING_URI = 'http://mlflow_service:9092'
     logging.warning(f"MLFLOW_ENABLED is False or not present and will be DEACTIVATED")
-
 MLFLOW_EXPERIMENT_NAME = 'LFB_MLOPS'  # Name of the MLflow experiment
 
 # Metrics definitions
