@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.base
-    image: myapp/base:latest  # Explicitly tag the built image
+    image: base:latest  # Explicitly tag the built image
     # No command or ports needed, as we do not need to run this service
 
   api_gateway:
@@ -124,6 +124,8 @@ services:
       - my_network_for_api
     volumes:
       - ./data-mlflow:/app
+    depends_on:
+      - base_image
 
   grafana_service:
     image: grafana/grafana:latest
