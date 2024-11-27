@@ -3,8 +3,7 @@
 /data/incident_data.pkl
 /data/mobilisation_data.csv
 /data/mobilisation_data.pkl
-
-
+/data/prometheus/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

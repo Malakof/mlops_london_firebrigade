@@ -1,5 +1,5 @@
-FROM ubuntu:20.04
-RUN apt-get update && apt-get install -y python3.8 python3.8-distutils python3-pip
+FROM python:3.12-slim
+# RUN apt-get update && apt-get install -y python3.12 python3.12-distutils python3-pip
 WORKDIR /app
 COPY ./src/api/microservices/process_data_service/requirements.txt .
 COPY ./src/api/microservices/process_data_service/main.py .

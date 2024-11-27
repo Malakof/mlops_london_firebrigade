@@ -1,4 +1,4 @@
-name: Python application test with Github Actions
+name: Pipeline to push docker images to dockerhub
 
 on:
   push:
@@ -24,30 +24,30 @@ jobs:
 
       - name: Build and push API Gateway Docker image
         run: |
-          docker build -t rs232gaming/mlops_london_firebrigade:${{ github.sha }} ./src/api/api_gateway/
+          docker build -t rs232gaming/mlops_london_firebrigade:${{ github.sha }} ./src/api/api_gateway/ .
           docker push rs232gaming/mlops_london_firebrigade:${{ github.sha }}
 
       - name: Build and push Process Data Service Docker image
         run: |
-          docker build -t rs232gaming/mlops_london_firebrigade:${{ github.sha }} ./src/api/microservices/process_data_service/
+          docker build -t rs232gaming/mlops_london_firebrigade:${{ github.sha }} ./src/api/microservices/process_data_service/ .
           docker push rs232gaming/mlops_london_firebrigade:${{ github.sha }}
 
       - name: Build and push Build Features Service Docker image
         run: |
-          docker build -t rs232gaming/mlops_london_firebrigade:${{ github.sha }} ./src/api/microservices/build_features_service/
+          docker build -t rs232gaming/mlops_london_firebrigade:${{ github.sha }} ./src/api/microservices/build_features_service/ .
           docker push rs232gaming/mlops_london_firebrigade:${{ github.sha }}
 
       - name: Build and push Train Model Service Docker image
         run: |
-          docker build -t rs232gaming/mlops_london_firebrigade:${{ github.sha }} ./src/api/microservices/train_model_service/
+          docker build -t rs232gaming/mlops_london_firebrigade:${{ github.sha }} ./src/api/microservices/train_model_service/ .
           docker push rs232gaming/mlops_london_firebrigade:${{ github.sha }}
 
       - name: Build and push Predict Service Docker image
         run: |
-          docker build -t rs232gaming/mlops_london_firebrigade:${{ github.sha }} ./src/api/microservices/predict_service/
+          docker build -t rs232gaming/mlops_london_firebrigade:${{ github.sha }} ./src/api/microservices/predict_service/ .
           docker push rs232gaming/mlops_london_firebrigade:${{ github.sha }}
 
       - name: Build and push MLflow Service Docker image
         run: |
-          docker build -t rs232gaming/mlops_london_firebrigade:${{ github.sha }} ./src/monitoring/mlflow/
+          docker build -t rs232gaming/mlops_london_firebrigade:${{ github.sha }} ./src/monitoring/mlflow/ .
           docker push rs232gaming/mlops_london_firebrigade:${{ github.sha }}
