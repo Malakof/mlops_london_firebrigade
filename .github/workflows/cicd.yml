@@ -7,17 +7,17 @@ name: CI/CD Pipeline for MLOPS London FIRE Brigade Project  # Name of the GitHub
 
 # Define trigger events for the workflow.
 on:
-  push:  # On push events,
-    branches: [main]  # trigger on the main branch.
-    paths:  # Only trigger if these files or directories change:
+  push: # On push events,
+    branches: [ main ]  # trigger on the main branch.
+    paths: # Only trigger if these files or directories change:
       - '.github/**'
       - 'src/**'
       - 'Dockerfile.base'
       - 'requirements.txt'
       - 'tests/**'
-  pull_request:  # On pull request events,
-    branches: [main]  # trigger on the main branch.
-    paths:  # Only trigger if these files or directories change:
+  pull_request: # On pull request events,
+    branches: [ main ]  # trigger on the main branch.
+    paths: # Only trigger if these files or directories change:
       - '.github/**'
       - 'src/**'
       - 'Dockerfile.base'
@@ -25,7 +25,7 @@ on:
       - 'tests/**'
 
 jobs:
-  ci:  # Continuous Integration job definition.
+  ci: # Continuous Integration job definition.
     runs-on: ubuntu-latest  # Specifies the virtual host environment (Ubuntu latest version).
     steps:
       - uses: actions/checkout@v4  # Checks out the repository under $GITHUB_WORKSPACE, so the job can access it.
@@ -42,7 +42,7 @@ jobs:
           echo "PYTHONPATH=${{ github.workspace }}" >> $GITHUB_ENV  # Set PYTHONPATH to include the project directory.
           python -m unittest discover -s tests -v  # Auto-discovers and runs tests in the 'tests' directory.
 
-  cd:  # Continuous Deployment job definition.
+  cd: # Continuous Deployment job definition.
     needs: ci  # Specifies that this job needs the 'ci' job to complete successfully before it starts.
     runs-on: ubuntu-latest  # Specifies the virtual host environment (Ubuntu latest version).
     steps:
@@ -57,6 +57,13 @@ jobs:
       - name: Build Base Image Docker image
         run: |  # Builds the Docker base image from Dockerfile.base.
           docker build -t base:latest -f Dockerfile.base .
+
+      # Tagging images with the specific commit SHA (${{ github.sha }}) and latest ensures:
+      # Traceability: Each image can be traced back to a specific commit in the repository, making it easier to identify
+      # the code version each image contains.
+      # Latest Tag: The latest tag is updated continuously to point to the most recent image built from the main branch. This is
+      # useful for environments that always need to pull the most recent version of an image without referring to a specific tag.
+
       - name: Build and push API Gateway Docker image
         run: |  # Builds and pushes the API Gateway service Docker image.
           docker build -t rs232gaming/mlops_london_firebrigade:api-gateway-${{ github.sha }} -f ./src/api/api_gateway/Dockerfile .
