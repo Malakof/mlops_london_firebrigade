@@ -4,25 +4,26 @@
   - [1.1 Repository Structure](#11-repository-structure)
   - [1.2 Install and run](#12-install-and-run)
   - [1.3 Main Components](#13-main-components)
-    - [1.3.1 API](#131-api-srcapimainpy)
+    - [1.3.1 API and Microservices](#131-api-and-microservices-srcapi)
     - [1.3.2 Data Processing](#132-data-processing-srcdatadata_preprocessingpy)
     - [1.3.3 Feature Building](#133-feature-building-srcfeaturesbuild_featurespy)
     - [1.3.5 Model Operations](#134-model-operations-srcmodel)
     - [1.3.6 Configuration and Logging](#135-configuration-and-logging-srcutilsconfigpy)
     - [1.3.7 Unit Tests](#136-unit-tests)
   - [1.4 Datas](#14-datas)
-- [2. Scripts and APIs](#2-scripts)
-  - [2.1 Data Processing Script Usage Guide](#21-data-processing-script-usage-guide)
-  - [2.2 Features Building Script Usage Guide](#22-features-building-script-usage-guide)
-  - [2.3 Model Training Script Usage Guide](#23-model-training-script-usage-guide)
-  - [2.4 Model Prediction Script Usage Guide](#24-model-prediction-script-usage-guide)
-- [3. Unit Test Documentation](#3-unit-test-documentation)
-- [4. CICD GitHub Actions pipeline](#4-cicd-github-actions-pipeline)
-- [5. Logging Framework](#5-logging-framework)
-- [6. Configuration Parameters Guide](#6-configuration-parameters-guide)
-- [7. Prometheus Metrics Logging](#7-prometheus-metrics-logging)
-- [8. MLflow Integration](#8-mlflow-integration)
-- [9. Docker Architecture](#9-docker-architecture)
+- [2. Model's API](#2-models-api)
+  - [2.1 Data Processing Usage Guide](#21-data-processing-usage-guide)
+  - [2.2 Features Building Usage Guide](#22-features-building-usage-guide)
+  - [2.3 Model Training Usage Guide](#23-model-training-usage-guide)
+  - [2.4 Model Prediction Usage Guide](#24-model-prediction-usage-guide)
+- [3. Docker Architecture](#3-docker-architecture)
+- [4. Unit Test Documentation](#4-unit-test-documentation)
+- [5. CICD GitHub Actions pipeline](#5-cicd-github-actions-pipeline)
+- [6. Logging Framework](#6-logging-framework)
+- [7. Configuration Parameters Guide](#7-configuration-parameters-guide)
+- [8. Prometheus Metrics Logging](#8-prometheus-metrics-logging)
+- [9. MLflow Integration](#9-mlflow-integration)
+
 
 # 1. Overview
 
@@ -31,6 +32,8 @@ utilizes the London Fire Brigade Incident Records dataset. The focus is on demon
 deployment rather than just the model's performance.
 
 ## 1.1 Repository Structure
+
+[![TODOs](https://img.shields.io/badge/TODO-red)](#11-repository-structure) **Update**
 
 - **scripts/**
     - `tests_api.sh` - Shell script for testing API endpoints.
@@ -60,7 +63,7 @@ deployment rather than just the model's performance.
 
 ## 1.3 Main Components
 
-### 1.3.1 API (`src/api/main.py`)
+### 1.3.1 API and Microservices (`src/api/*`)
 
 - Authentication, data processing, feature building, model training, and prediction endpoints.
 - **Hard coded users for authentication: "admin": "fireforce", "user": "london123"**
@@ -101,9 +104,9 @@ https://data.london.gov.uk/download/london-fire-brigade-incident-records/f5066d6
 [Mobilistaion Datasource ](
 https://data.london.gov.uk/download/london-fire-brigade-mobilisation-records/3ff29fb5-3935-41b2-89f1-38571059237e/LFB%20Mobilisation%20data%202021%20-%202024.xlsx)
 
-# 2. Scripts
+# 2. Model's API
 
-## 2.1 Data Processing Script Usage Guide
+## 2.1 Data Processing Usage Guide
 
 This guide covers the usage of the data processing script, designed to download, process, validate incident and
 mobilisation data files, and optionally convert them to pickle format for optimized Python usage. You can run this
@@ -210,7 +213,7 @@ tasks.
 This integration allows for seamless operation between script-based data handling and API-driven interactions,
 supporting a more automated and flexible workflow.
 
-## 2.2 Features Building Script Usage Guide
+## 2.2 Features Building Usage Guide
 
 This guide details the usage of the `build_features.py` script, designed to load data, clean it, merge different data
 sources, and finally save the resulting dataset for modeling. This script is a crucial step in the data preparation
@@ -271,7 +274,7 @@ Errors during the feature building process are logged and raised as exceptions, 
 and can be addressed promptly. This robust error handling is crucial for maintaining data integrity and reliability in
 automated systems.
 
-## 2.3 Model Training Script Usage Guide
+## 2.3 Model Training Usage Guide
 
 This guide outlines the usage of the `train_model.py` script, designed for training a machine learning model. This
 script handles the training of a linear regression model using the prepared features, evaluates its performance, and
@@ -368,7 +371,7 @@ prioritize automation and flexibility.
 The script and API endpoint are designed with robust error handling to ensure that any issues during the model training
 process are logged and addressed, providing detailed error messages to aid in troubleshooting.
 
-## 2.4 Model Prediction Script Usage Guide
+## 2.4 Model Prediction Usage Guide
 
 This guide explains the usage of the `predict_model.py` script, designed to make predictions using a pre-trained model.
 This script loads the necessary model and encoder, prepares the input features, and performs predictions based on input
@@ -445,7 +448,20 @@ Both the script and API endpoint include comprehensive error handling mechanisms
 during prediction due to model loading failures, data preparation issues, or during the prediction itself are logged and
 reported. This helps maintain high reliability and provides clarity in operational settings.
 
-# 3. Unit Test Documentation
+# 3. Docker Architecture
+![Docker](docker_pompier.jpg)
+
+In order to start building the images and activate the containers, go to the root of the project and run the following command:
+
+In order to give rights to data volumes for Grafana and Prometheus, you must execute the init.sh script first.
+
+```bash
+./init.sh
+docker-compose build
+docker-compose up
+```
+
+# 4. Unit Test Documentation
 
 This guide provides an overview of the unit tests for the MLOps project. It lists each test file, explains its purpose,
 and describes how to run the tests.
@@ -493,7 +509,10 @@ python -m unittest discover -s tests
 
 This command will discover all test files in the `tests` directory and execute them.
 
-# 4. CICD GitHub Actions pipeline
+
+
+
+# 5. CICD GitHub Actions pipeline
 
 Script `.github/workflows/cicd.yml`
 
@@ -530,7 +549,7 @@ Tagging images with the specific commit SHA (${{ github.sha }}) and latest ensur
 This approach provides a robust mechanism to manage versions in production and development environments, allowing for more controlled deployments and the ability to roll back to a specific version if needed.
 
 
-# 5. Logging Framework
+# 6. Logging Framework
 
 This guide provides an overview of the logging framework implemented within the project. The logging setup is designed
 to capture detailed logs across different modules of the application, ensuring that all significant events, errors, and
@@ -604,7 +623,7 @@ handle new features.
 
 Here's a detailed documentation for the `config.py` script used in the project, focusing on the parameters it manages.
 
-# 6. Configuration Parameters Guide
+# 7. Configuration Parameters Guide
 
 This guide outlines the parameters defined in the `config.py` file used throughout the project. The `config.py` script
 centralizes configuration settings, providing a single point of reference for managing paths, URLs, and other
@@ -672,7 +691,7 @@ settings, making it easier to maintain and modify the system as needed. For inst
 automatically update the data paths in all scripts that import this configuration, facilitating easy relocations of data
 storage without modifying each script individually.
 
-# 7. Prometheus Metrics Logging
+# 8. Prometheus Metrics Logging
 ## Overview
 This project implements metrics logging using Prometheus and Pushgateway to monitor the performance and status of various scripts involved in data processing, model training, and prediction. Each script utilizes the MetricsLogger class from config.py to record and push metrics to a Pushgateway, which are then scraped by a Prometheus server for monitoring and analysis.
 
@@ -798,7 +817,7 @@ Below is a comprehensive list of all metrics logged by each script during a batc
 
 While the API script primarily handles HTTP requests and orchestrates calls to other scripts, it also utilizes the MetricsLogger to record log message counters. Additional metrics can be added as needed to monitor API-specific events.
 
-# 8. MLflow Integration
+# 9. MLflow Integration
 
 ## Overview of Scripts
 
@@ -845,15 +864,3 @@ Ensure that the following parameters are properly set in `config.py` to enable M
 
 Integrating MLflow helps in managing the lifecycle of machine learning models effectively, from logging experiments to serving predictions using the best models. This project demonstrates a practical implementation of these capabilities.
 
-# 9. Docker Architecture
-![Docker](docker_pompier.jpg)
-
-In order to start building the images and activate the containers, go to the root of the project and run the following command:
-
-In order to give rights to data volumes for Grafana and Prometheus, you must execute the init.sh script first.
-
-```bash
-./init.sh
-docker-compose build
-docker-compose up
-```
