@@ -1,17 +1,23 @@
-name: CI/CD Pipeline for MLOPS London FIRE Brigade Project
+# This CI/CD pipeline configuration is designed for the MLOPS London FIRE Brigade Project.
+# It includes jobs for continuous integration (CI) and continuous deployment (CD) that
+# execute on pushes and pull requests to the main branch, specifically when changes affect
+# the specified paths related to the project's source code and Docker environment.
 
+name: CI/CD Pipeline for MLOPS London FIRE Brigade Project  # Name of the GitHub Actions workflow.
+
+# Define trigger events for the workflow.
 on:
-  push:
-    branches: [ main ]
-    paths:
+  push:  # On push events,
+    branches: [main]  # trigger on the main branch.
+    paths:  # Only trigger if these files or directories change:
       - '.github/**'
       - 'src/**'
       - 'Dockerfile.base'
       - 'requirements.txt'
       - 'tests/**'
-  pull_request:
-    branches: [ main ]
-    paths:
+  pull_request:  # On pull request events,
+    branches: [main]  # trigger on the main branch.
+    paths:  # Only trigger if these files or directories change:
       - '.github/**'
       - 'src/**'
       - 'Dockerfile.base'
@@ -19,59 +25,76 @@ on:
       - 'tests/**'
 
 jobs:
-  ci:
-    runs-on: ubuntu-latest
+  ci:  # Continuous Integration job definition.
+    runs-on: ubuntu-latest  # Specifies the virtual host environment (Ubuntu latest version).
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4  # Checks out the repository under $GITHUB_WORKSPACE, so the job can access it.
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v4  # Sets up a Python environment using a version specified below.
         with:
-          python-version: '3.12'
+          python-version: '3.12'  # Sets the Python version to 3.12.
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+        run: |  # Runs a series of commands using the shell.
+          python -m pip install --upgrade pip  # Upgrades pip.
+          pip install -r requirements.txt  # Installs required Python packages specified in requirements.txt.
       - name: Run tests
-        run: |
-          echo "PYTHONPATH=${{ github.workspace }}" >> $GITHUB_ENV
-          python -m unittest discover -s tests -v
+        run: |  # Executes unit tests using the unittest module.
+          echo "PYTHONPATH=${{ github.workspace }}" >> $GITHUB_ENV  # Set PYTHONPATH to include the project directory.
+          python -m unittest discover -s tests -v  # Auto-discovers and runs tests in the 'tests' directory.
 
-  cd:
-    needs: ci
-    runs-on: ubuntu-latest
+  cd:  # Continuous Deployment job definition.
+    needs: ci  # Specifies that this job needs the 'ci' job to complete successfully before it starts.
+    runs-on: ubuntu-latest  # Specifies the virtual host environment (Ubuntu latest version).
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4  # Checks out the repository under $GITHUB_WORKSPACE.
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v3  # Sets up Docker Buildx for building and pushing Docker images.
       - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v1  # Logs into Docker Hub to enable image push.
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_USERNAME }}  # Docker Hub username, stored as a GitHub secret.
+          password: ${{ secrets.DOCKER_PASSWORD }}  # Docker Hub password, stored as a GitHub secret.
       - name: Build Base Image Docker image
-        run: |
+        run: |  # Builds the Docker base image from Dockerfile.base.
           docker build -t base:latest -f Dockerfile.base .
       - name: Build and push API Gateway Docker image
-        run: |
+        run: |  # Builds and pushes the API Gateway service Docker image.
           docker build -t rs232gaming/mlops_london_firebrigade:api-gateway-${{ github.sha }} -f ./src/api/api_gateway/Dockerfile .
+          docker tag rs232gaming/mlops_london_firebrigade:api-gateway-${{ github.sha }} rs232gaming/mlops_london_firebrigade:api-gateway-latest
           docker push rs232gaming/mlops_london_firebrigade:api-gateway-${{ github.sha }}
+          docker push rs232gaming/mlops_london_firebrigade:api-gateway-latest
+
       - name: Build and push Process Data Service Docker image
-        run: |
+        run: |  # Builds and pushes the Process Data service Docker image.
           docker build -t rs232gaming/mlops_london_firebrigade:process-data-${{ github.sha }} -f ./src/api/microservices/process_data_service/Dockerfile .
+          docker tag rs232gaming/mlops_london_firebrigade:process-data-${{ github.sha }} rs232gaming/mlops_london_firebrigade:process-data-latest
           docker push rs232gaming/mlops_london_firebrigade:process-data-${{ github.sha }}
+          docker push rs232gaming/mlops_london_firebrigade:process-data-latest
+
       - name: Build and push Build Features Service Docker image
-        run: |
+        run: |  # Builds and pushes the Build Features service Docker image.
           docker build -t rs232gaming/mlops_london_firebrigade:build-features-${{ github.sha }} -f ./src/api/microservices/build_features_service/Dockerfile .
+          docker tag rs232gaming/mlops_london_firebrigade:build-features-${{ github.sha }} rs232gaming/mlops_london_firebrigade:build-features-latest
           docker push rs232gaming/mlops_london_firebrigade:build-features-${{ github.sha }}
+          docker push rs232gaming/mlops_london_firebrigade:build-features-latest
+
       - name: Build and push Train Model Service Docker image
-        run: |
+        run: |  # Builds and pushes the Train Model service Docker image.
           docker build -t rs232gaming/mlops_london_firebrigade:train-model-${{ github.sha }} -f ./src/api/microservices/train_model_service/Dockerfile .
+          docker tag rs232gaming/mlops_london_firebrigade:train-model-${{ github.sha }} rs232gaming/mlops_london_firebrigade:train-model-latest
           docker push rs232gaming/mlops_london_firebrigade:train-model-${{ github.sha }}
+          docker push rs232gaming/mlops_london_firebrigade:train-model-latest
+
       - name: Build and push Predict Service Docker image
-        run: |
+        run: |  # Builds and pushes the Predict service Docker image.
           docker build -t rs232gaming/mlops_london_firebrigade:predict-service-${{ github.sha }} -f ./src/api/microservices/predict_service/Dockerfile .
+          docker tag rs232gaming/mlops_london_firebrigade:predict-service-${{ github.sha }} rs232gaming/mlops_london_firebrigade:predict-service-latest
           docker push rs232gaming/mlops_london_firebrigade:predict-service-${{ github.sha }}
+          docker push rs232gaming/mlops_london_firebrigade:predict-service-latest
+
       - name: Build and push MLflow Service Docker image
-        run: |
+        run: |  # Builds and pushes the MLflow service Docker image.
           docker build -t rs232gaming/mlops_london_firebrigade:mlflow-${{ github.sha }} -f ./src/monitoring/mlflow/Dockerfile .
+          docker tag rs232gaming/mlops_london_firebrigade:mlflow-${{ github.sha }} rs232gaming/mlops_london_firebrigade:mlflow-latest
           docker push rs232gaming/mlops_london_firebrigade:mlflow-${{ github.sha }}
+          docker push rs232gaming/mlops_london_firebrigade:mlflow-latest
