@@ -74,6 +74,13 @@ source .venv/bin/activate
 pip install -r requirements.txt
 export PYTHONPATH="${PYTHONPATH}:${PWD}/src"
 ```
+- **Install Docker and Docker Compose if needed:**
+```bash
+sudo apt-get update
+sudo apt-get install -y docker.io
+sudo apt-get install -y docker-compose
+```
+
 - **Build and run Docker containers locally:**
 ```bash
 docker-compose up -d --build 
