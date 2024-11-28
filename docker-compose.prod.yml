@@ -104,6 +104,11 @@ services:
       - my_network_for_api
     volumes:
       - ./data-grafana:/var/lib/grafana
+      - ./cfg-grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./cfg-grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./cfg-grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin  
     depends_on:
       - prometheus_service
 
@@ -114,7 +119,7 @@ services:
     networks:
       - my_network_for_api
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./cfg-prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./data-prometheus:/prometheus/data
     depends_on:
       - pushgateway_service

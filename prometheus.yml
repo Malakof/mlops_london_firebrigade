@@ -1,6 +1,0 @@
-global:
-  scrape_interval: 5s
-scrape_configs:
-  - job_name: 'firebrigade_model'
-    static_configs:
-      - targets: ['pushgateway_service:9091']
