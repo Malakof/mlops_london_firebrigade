@@ -1,8 +1,5 @@
 # London Fire Brigade MLOPS DataScienceTest Project
 
-
-## Table of Contents
-
 - [Overview](#overview)
   - [Repository Structure](#repository-structure)
   - [Install and run](#install-and-run)
