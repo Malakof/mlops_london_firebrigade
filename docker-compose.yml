@@ -160,8 +160,12 @@ services:
     container_name: pushgateway_service
     ports:
       - "9091:9091"
+    command:
+      - '--persistence.file=/data/metric.store'
     networks:
       - my_network_for_api
+    volumes:
+      - ./data-prometheus:/data
 
 networks:
   my_network_for_api:
