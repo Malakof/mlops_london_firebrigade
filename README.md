@@ -33,13 +33,49 @@ deployment rather than just the model's performance.
 
 ## 1.1 Repository Structure
 
-[![TODOs](https://img.shields.io/badge/TODO-red)](#11-repository-structure) **Vincent Richard Mathieu Update**
-
+- **cfg-grafana/**
+    - **dasboards/**
+        - `*.json` - all defénitions for each dasbord.
+    - **provisioning**
+        - **dasboards**
+            - `dashboard.yml` - config for dashboard for grafana.
+        - **datasources**
+            - `datasources.yml` - config data source for grafana.
+- **cfg-prometheus/**
+    - `prometheus.yml` - config for prometheus.
+- **data/**
+    - **ref/**
+        - `satation.csv` - referential data base for localization of station.
+- **models/**
+    - `linear_regression_model.pkl` - Model OF ML when use systeme without ML Flow.
+    - `onehot_encoder.pkl` - Encoder when use systeme without ML Flow..
 - **scripts/**
     - `tests_api.sh` - Shell script for testing API endpoints.
+    - `prometheus_start.sh` - Shell script for starting prometheus docker manualy.
 - **src/**
     - **api/**
         - `main.py` - FastAPI application setup and route definitions.
+    - **api_gateway/**
+        - `main.py` - FastAPI application setup and route definitions (for Docker).
+        - `Dockerfile` - Dockerfile for api_gateway.
+        - `requirement.txt` - library for python in contener for api_gateway.
+    - **apmicrservices/**
+        - **build_features_service/**
+            - `main.py` - FastAPI application setup and route definitions (for Docker).
+            - `Dockerfile` - Dockerfile for build_features_service.
+            - `requirement.txt` - library for python in contener for build_features_service.
+        - **predict_service/**
+            - `main.py` - FastAPI application setup and route definitions (for Docker).
+            - `Dockerfile` - Dockerfile for predict_service.
+            - `requirement.txt` - library for python in contener for predict_service.
+       - **process_data_service/**
+            - `main.py` - FastAPI application setup and route definitions (for Docker).
+            - `Dockerfile` - Dockerfile for process_data_service.
+            - `requirement.txt` - library for python in contener for process_data_service.
+       - **train_model_service/**
+            - `main.py` - FastAPI application setup and route definitions (for Docker).
+            - `Dockerfile` - Dockerfile for train_model_service.
+            - `requirement.txt` - library for python in contener for train_model_service.
     - **data/**
         - `data_preprocessing.py` - Functions for downloading and preprocessing data.
     - **features/**
@@ -58,6 +94,9 @@ deployment rather than just the model's performance.
     - `test_api.py` - Unit tests for API endpoint functionalities.
 - `docker-compose.yml` - Docker configuration file (dev).
 - `docker-compose.prod.yml` - Docker configuration file (prod).
+- `Dockerfile.base` - Dockerfile for base image for contener of api_gateway and microservices.
+- `requirement.txt` - library for python in contener for base image.
+- `init.sh` - initialize script for create directory volome for grafana et prometheus with rignt chmod.
 
 ## 1.2 Install and run
 
