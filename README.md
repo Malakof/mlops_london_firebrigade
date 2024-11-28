@@ -33,7 +33,7 @@ deployment rather than just the model's performance.
 
 ## 1.1 Repository Structure
 
-[![TODOs](https://img.shields.io/badge/TODO-red)](#11-repository-structure) **Update**
+[![TODOs](https://img.shields.io/badge/TODO-red)](#11-repository-structure) **Vincent Richard Mathieu Update**
 
 - **scripts/**
     - `tests_api.sh` - Shell script for testing API endpoints.
@@ -60,6 +60,50 @@ deployment rather than just the model's performance.
 - `docker-compose.prod.yml` - Docker configuration file (prod).
 
 ## 1.2 Install and run
+
+- **Clone the repository:**
+```bash
+git clone https://github.com/Malakof/mlops_london_firebrigade/
+cd mlops_london_firebrigade/
+```
+- **Optional for running the scripts locally :** create a virtual environment, install dependancies and set PYTHONPATH:
+
+```bash
+python3 -m  venv .venv 
+source .venv/bin/activate
+pip install -r requirements.txt
+export PYTHONPATH="${PYTHONPATH}:${PWD}/src"
+```
+- **Build and run Docker containers locally:**
+```bash
+docker-compose up -d --build 
+```
+
+**OR**
+
+- **Build and run Docker containers from Docker Hub:**
+```bash
+docker_compose docker-compose.prod.yml up -d --build
+````
+
+- **Access the log directory to view logs:**
+```bash
+cd logs
+```
+
+- **Access the API:**
+Navigate to http://localhost:8000/docs to access the API to process data, build features, train_model, health check, and make predictions.
+  - Hard coded users for authentication: "admin": "fireforce", "user": "london123"
+- **Access the MLflow UI:**
+Navigate to http://localhost:9092 to access the MLflow UI and check models are created.
+- **Access the Pushgateway UI:**
+Navigate to http://localhost:9091 to access the Pushgateway UI to see metrics currently pushed in.
+- **Access the Prometheus metrics:**
+Navigate to http://localhost:9090 to access the Prometheus metrics grabbed from pushgateway.
+- **Access the Grafana UI:**
+Navigate to http://localhost:3000 to access the Grafana UI to acces dashboard.
+
+
 
 ## 1.3 Main Components
 
