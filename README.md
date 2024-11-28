@@ -1,36 +1,36 @@
 # London Fire Brigade MLOPS DataScienceTest Project
 
-- [Overview](#overview)
-  - [Repository Structure](#repository-structure)
-  - [Install and run](#install-and-run)
-  - [Main Components](#main-components)
-    - [API](#api-srcapimainpy)
-    - [Data Processing](#data-processing-srcdatadata_preprocessingpy)
-    - [Feature Building](#feature-building-srcfeaturesbuild_featurespy)
-    - [Model Operations](#model-operations-srcmodel)
-    - [Configuration and Logging](#configuration-and-logging-srcutilsconfigpy)
-    - [Unit Tests](#unit-tests)
-- [Scripts and APIs](#scripts)
-  - [Data Processing Script Usage Guide](#data-processing-script-usage-guide)
-  - [Features Building Script Usage Guide](#features-building-script-usage-guide)
-  - [Model Training Script Usage Guide](#model-training-script-usage-guide)
-  - [Model Prediction Script Usage Guide](#model-prediction-script-usage-guide)
-- [Unit Test Documentation](#unit-test-documentation)
-- [CICD GitHub Actions pipeline](#cicd-github-actions-pipeline)
-- [Logging Framework](#logging-framework)
-- [Configuration Parameters Guide](#configuration-parameters-guide)
-- [Prometheus Metrics Logging](#prometheus-metrics-logging)
-- [MLflow Integration](#mlflow-integration)
-- [Docker Architecture](#docker-architecture)
+- [1. Overview](#1-overview)
+  - [1.1 Repository Structure](#11-repository-structure)
+  - [1.2 Install and run](#12-install-and-run)
+  - [1.3 Main Components](#13-main-components)
+    - [1.3.1 API](#131-api-srcapimainpy)
+    - [1.3.2 Data Processing](#132-data-processing-srcdatadata_preprocessingpy)
+    - [1.3.3 Feature Building](#133-feature-building-srcfeaturesbuild_featurespy)
+    - [1.3.5 Model Operations](#134-model-operations-srcmodel)
+    - [1.3.6 Configuration and Logging](#135-configuration-and-logging-srcutilsconfigpy)
+    - [1.3.7 Unit Tests](#136-unit-tests)
+  - [1.4 Datas](#14-datas)
+- [2. Scripts and APIs](#2-scripts)
+  - [2.1 Data Processing Script Usage Guide](#21-data-processing-script-usage-guide)
+  - [2.2 Features Building Script Usage Guide](#22-features-building-script-usage-guide)
+  - [2.3 Model Training Script Usage Guide](#23-model-training-script-usage-guide)
+  - [2.4 Model Prediction Script Usage Guide](#24-model-prediction-script-usage-guide)
+- [3. Unit Test Documentation](#3-unit-test-documentation)
+- [4. CICD GitHub Actions pipeline](#4-cicd-github-actions-pipeline)
+- [5. Logging Framework](#5-logging-framework)
+- [6. Configuration Parameters Guide](#6-configuration-parameters-guide)
+- [7. Prometheus Metrics Logging](#7-prometheus-metrics-logging)
+- [8. MLflow Integration](#8-mlflow-integration)
+- [9. Docker Architecture](#9-docker-architecture)
 
-
-# Overview
+# 1. Overview
 
 This MLOps project aims to deploy a machine learning model to predict response times for the London Fire Brigade. It
 utilizes the London Fire Brigade Incident Records dataset. The focus is on demonstrating a viable framework for ML model
 deployment rather than just the model's performance.
 
-## Repository Structure
+## 1.1 Repository Structure
 
 - **scripts/**
     - `tests_api.sh` - Shell script for testing API endpoints.
@@ -56,34 +56,34 @@ deployment rather than just the model's performance.
 - `docker-compose.yml` - Docker configuration file (dev).
 - `docker-compose.prod.yml` - Docker configuration file (prod).
 
-## Install and run
+## 1.2 Install and run
 
-## Main Components
+## 1.3 Main Components
 
-### API (`src/api/main.py`)
+### 1.3.1 API (`src/api/main.py`)
 
 - Authentication, data processing, feature building, model training, and prediction endpoints.
 - **Hard coded users for authentication: "admin": "fireforce", "user": "london123"**
 
-### Data Processing (`src/data/data_preprocessing.py`)
+### 1.3.2 Data Processing (`src/data/data_preprocessing.py`)
 
 - Downloads, reads, filters, and processes incident and mobilisation data. Converts data to CSV or pickle formats.
 
-### Feature Building (`src/features/build_features.py`)
+### 1.3.3 Feature Building (`src/features/build_features.py`)
 
 - Loads, cleans, merges, and stores features for modeling.
 
-### Model Operations (`src/model/`)
+### 1.3.4 Model Operations (`src/model/`)
 
 - `train_model.py`: Trains and saves a linear regression model.
 - `predict_model.py`: Predicts attendance times using the trained model.
 - `eval_model.py`: Placeholder script for model evaluation.
 
-### Configuration and Logging (`src/utils/config.py`)
+### 1.3.5 Configuration and Logging (`src/utils/config.py`)
 
 - Central configuration for paths, URLs, and logging setup.
 
-### Unit Tests
+### 1.3.6 Unit Tests
 
 - The project includes a comprehensive suite of unit tests located in the `tests` directory. These tests ensure the
   reliability and accuracy of each component of the system by testing data processing, feature engineering, model
@@ -91,7 +91,7 @@ deployment rather than just the model's performance.
   or integrated into continuous integration workflows such as GitHub Actions to facilitate continuous testing and
   validation throughout the development lifecycle.
 
-## Datas
+## 1.4 Datas
 
 [London Fire Brigade Incident Records @ Kaggle](https://www.kaggle.com/datasets/mexwell/london-fire-brigade-incident-records?resource=download)
 
@@ -101,9 +101,9 @@ https://data.london.gov.uk/download/london-fire-brigade-incident-records/f5066d6
 [Mobilistaion Datasource ](
 https://data.london.gov.uk/download/london-fire-brigade-mobilisation-records/3ff29fb5-3935-41b2-89f1-38571059237e/LFB%20Mobilisation%20data%202021%20-%202024.xlsx)
 
-# Scripts
+# 2. Scripts
 
-## Data Processing Script Usage Guide
+## 2.1 Data Processing Script Usage Guide
 
 This guide covers the usage of the data processing script, designed to download, process, validate incident and
 mobilisation data files, and optionally convert them to pickle format for optimized Python usage. You can run this
@@ -210,7 +210,7 @@ tasks.
 This integration allows for seamless operation between script-based data handling and API-driven interactions,
 supporting a more automated and flexible workflow.
 
-## Features Building Script Usage Guide
+## 2.2 Features Building Script Usage Guide
 
 This guide details the usage of the `build_features.py` script, designed to load data, clean it, merge different data
 sources, and finally save the resulting dataset for modeling. This script is a crucial step in the data preparation
@@ -231,27 +231,27 @@ python build_features.py
 
 This command will execute the feature building process using predefined settings specified in the script.
 
-## API build_features Testing
+### API build_features Testing
 
-### Endpoint `/build_features` 
+#### Endpoint `/build_features` 
 
 This endpoint triggers the feature building process which involves data cleaning, transformation, and merging to prepare
 it for model training. It is designed to be used after data has been processed and is ready to be transformed into a
 format suitable for machine learning.
 
-#### Endpoint Details
+##### Endpoint Details
 
 - **URL**: `/build_features`
 - **Method**: `GET`
 - **Auth Required**: Yes (Basic HTTP Authentication)
 
-#### Usage
+##### Usage
 
 To initiate the feature building process through the API, an authenticated GET request is made to the endpoint. This
 method allows the process to be integrated into larger workflows, such as continuous integration pipelines or automated
 data handling systems.
 
-#### Examples
+##### Examples
 
 1. **Trigger Feature Building**
 
@@ -271,7 +271,7 @@ Errors during the feature building process are logged and raised as exceptions, 
 and can be addressed promptly. This robust error handling is crucial for maintaining data integrity and reliability in
 automated systems.
 
-## Model Training Script Usage Guide
+## 2.3 Model Training Script Usage Guide
 
 This guide outlines the usage of the `train_model.py` script, designed for training a machine learning model. This
 script handles the training of a linear regression model using the prepared features, evaluates its performance, and
@@ -310,7 +310,7 @@ python train_model.py [options]
 
 ### API train Testing
 
-#### `/train_model` Endpoint
+#### Endpoint `/train_model`
 
 This endpoint handles the training of the model directly through an API call, allowing the parameters for the model
 training to be specified through a POST request. It integrates seamlessly into a continuous deployment pipeline or any
@@ -368,7 +368,7 @@ prioritize automation and flexibility.
 The script and API endpoint are designed with robust error handling to ensure that any issues during the model training
 process are logged and addressed, providing detailed error messages to aid in troubleshooting.
 
-## Model Prediction Script Usage Guide
+## 2.4 Model Prediction Script Usage Guide
 
 This guide explains the usage of the `predict_model.py` script, designed to make predictions using a pre-trained model.
 This script loads the necessary model and encoder, prepares the input features, and performs predictions based on input
@@ -445,7 +445,7 @@ Both the script and API endpoint include comprehensive error handling mechanisms
 during prediction due to model loading failures, data preparation issues, or during the prediction itself are logged and
 reported. This helps maintain high reliability and provides clarity in operational settings.
 
-# Unit Test Documentation
+# 3. Unit Test Documentation
 
 This guide provides an overview of the unit tests for the MLOps project. It lists each test file, explains its purpose,
 and describes how to run the tests.
@@ -493,7 +493,7 @@ python -m unittest discover -s tests
 
 This command will discover all test files in the `tests` directory and execute them.
 
-# CICD GitHub Actions pipeline
+# 4. CICD GitHub Actions pipeline
 
 Script `.github/workflows/cicd.yml`
 
@@ -530,7 +530,7 @@ Tagging images with the specific commit SHA (${{ github.sha }}) and latest ensur
 This approach provides a robust mechanism to manage versions in production and development environments, allowing for more controlled deployments and the ability to roll back to a specific version if needed.
 
 
-# Logging Framework
+# 5. Logging Framework
 
 This guide provides an overview of the logging framework implemented within the project. The logging setup is designed
 to capture detailed logs across different modules of the application, ensuring that all significant events, errors, and
@@ -604,7 +604,7 @@ handle new features.
 
 Here's a detailed documentation for the `config.py` script used in the project, focusing on the parameters it manages.
 
-# Configuration Parameters Guide
+# 6. Configuration Parameters Guide
 
 This guide outlines the parameters defined in the `config.py` file used throughout the project. The `config.py` script
 centralizes configuration settings, providing a single point of reference for managing paths, URLs, and other
@@ -672,7 +672,7 @@ settings, making it easier to maintain and modify the system as needed. For inst
 automatically update the data paths in all scripts that import this configuration, facilitating easy relocations of data
 storage without modifying each script individually.
 
-# Prometheus Metrics Logging
+# 7. Prometheus Metrics Logging
 ## Overview
 This project implements metrics logging using Prometheus and Pushgateway to monitor the performance and status of various scripts involved in data processing, model training, and prediction. Each script utilizes the MetricsLogger class from config.py to record and push metrics to a Pushgateway, which are then scraped by a Prometheus server for monitoring and analysis.
 
@@ -798,7 +798,7 @@ Below is a comprehensive list of all metrics logged by each script during a batc
 
 While the API script primarily handles HTTP requests and orchestrates calls to other scripts, it also utilizes the MetricsLogger to record log message counters. Additional metrics can be added as needed to monitor API-specific events.
 
-# MLflow Integration
+# 8. MLflow Integration
 
 ## Overview of Scripts
 
@@ -845,7 +845,7 @@ Ensure that the following parameters are properly set in `config.py` to enable M
 
 Integrating MLflow helps in managing the lifecycle of machine learning models effectively, from logging experiments to serving predictions using the best models. This project demonstrates a practical implementation of these capabilities.
 
-# Docker Architecture
+# 9. Docker Architecture
 ![Docker](docker_pompier.jpg)
 
 In order to start building the images and activate the containers, go to the root of the project and run the following command:
