@@ -24,11 +24,11 @@ jobs:
 
       - name: Build Base Image Docker image
         run: |
-          docker build -t myapp/base:latest -f Dockerfile.base .
-#         docker build -t myapp/base:${{ github.sha }} -f Dockerfile.base .
-#         docker tag myapp/base:${{ github.sha }} myapp/base:latest
-#         docker push myapp/base:${{ github.sha }}
-#         docker push myapp/base:latest
+          docker build -t base:latest -f Dockerfile.base .
+#         docker build -t base:${{ github.sha }} -f Dockerfile.base .
+#         docker tag base:${{ github.sha }} base:latest
+#         docker push base:${{ github.sha }}
+#         docker push base:latest
 
       - name: Build and push API Gateway Docker image
         run: |
