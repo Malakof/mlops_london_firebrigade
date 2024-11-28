@@ -90,7 +90,7 @@ docker-compose up -d --build
 
 - **Build and run Docker containers from Docker Hub:**
 ```bash
-docker_compose docker-compose.prod.yml up -d --build
+docker-compose -f docker-compose.prod.yml up -d
 ````
 
 - **Access the log directory to view logs:**
