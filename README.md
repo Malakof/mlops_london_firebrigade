@@ -17,7 +17,6 @@
   - [Model Prediction Script Usage Guide](#model-prediction-script-usage-guide)
 - [Unit Test Documentation](#unit-test-documentation)
 - [CICD GitHub Actions pipeline](#cicd-github-actions-pipeline)
-- [RUN, monitoring and visualization](#run-monitoring-and-visualization)
 - [Logging Framework](#logging-framework)
 - [Configuration Parameters Guide](#configuration-parameters-guide)
 - [Prometheus Metrics Logging](#prometheus-metrics-logging)
