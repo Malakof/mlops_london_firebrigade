@@ -95,7 +95,7 @@ def make_predict(distance=1.3, station_de_depart='Acton'):
             NUM_PREDICTIONS_METRIC: predictions[0]
         })
         logging.debug(f"Predictions: {predictions}, completed successfully.")
-
+        # logging.info("TEST METRIC", metrics={'XXXXXX_TEST_METRIC_XXXXXX': 6666})
         # ascii_happy_dog_face()
 
     except Exception as e:
