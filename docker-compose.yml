@@ -1,20 +1,37 @@
+# This Docker Compose file configures a comprehensive setup for the MLOPS London FIRE Brigade Project,
+# which includes services for API management, data processing, model training, prediction, and necessary
+# monitoring tools. Each service is interconnected through a dedicated Docker network, ensuring isolated
+# and secure communication between services. This setup is designed to be scalable and modular, facilitating
+# easy updates and maintenance.
 
-version: '3.12'
+# Services Overview:
+#   - base_image: Base Docker environment for other services.
+#   - api_gateway: Entrypoint for API requests, managing traffic to various services.
+#   - process_data_service: Handles data processing tasks.
+#   - build_features_service: Manages feature engineering for model training.
+#   - train_model_service: Responsible for training machine learning models.
+#   - predict_service: Provides endpoints for making predictions using trained models.
+#   - mlflow_service: Tracks experiments, manages models and monitors their performance.
+#   - grafana_service: Visualization tool for metrics and logs.
+#   - prometheus_service: Monitoring and alerting toolkit collecting and processing metrics.
+#   - pushgateway_service: Intermediate service for pushing metrics from jobs which cannot be scraped.
+
 
 services:
+  # Base image providing a Python environment for other services to build upon.
   base_image:
     build:
-      context: .
-      dockerfile: Dockerfile.base
-    image: base:latest  # Explicitly tag the built image
-    # No command or ports needed, as we do not need to run this service
+      context: .  # Specifies the directory containing the Dockerfile and related content.
+      dockerfile: Dockerfile.base  # Specifies the Dockerfile to use for building the image.
+    image: base:latest  # Tags the built image for easy reference.
 
+  # API gateway handling incoming requests and routing them to appropriate services.
   api_gateway:
     build:
       context: .
       dockerfile: ./src/api/api_gateway/Dockerfile
     ports:
-      - "8000:8000"
+      - "8000:8000"  # Exposes port 8000 for external access.
     depends_on:
       - base_image
       - process_data_service
@@ -23,67 +40,67 @@ services:
       - predict_service
       - mlflow_service
     networks:
-      - my_network_for_api
+      - my_network_for_api  # Connects to a custom network for inter-service communication.
     volumes:
-      - ./logs:/app/logs
-      - ./data:/app/data
-      - ./models:/app/models
+      - ./logs:/app/logs  # Mounts host log directory to the container.
+      - ./data:/app/data  # Mounts host data directory to the container.
+      - ./models:/app/models  # Mounts host model directory to the container.
     environment:
-      - DOCKER=1
+      - DOCKER=1  # Environment variable to indicate the service is running in Docker.
       - PUSH_GATEWAY_ENABLED=True
-      # - MLFLOW_ENABLED=True
+      - MLFLOW_ENABLED=True
 
+  # Data processing service to handle data ingestion and preprocessing.
   process_data_service:
     build:
       context: .
       dockerfile: ./src/api/microservices/process_data_service/Dockerfile
     ports:
-      - "8001:8001"
+      - "8001:8001" # Exposes port 8001
     networks:
       - my_network_for_api
     volumes:
-      - ./logs:/app/logs
-      - ./data:/app/data
+      - ./logs:/app/logs # Mounts host log directory to the container.
+      - ./data:/app/data # Mounts host data directory to the container.
     environment:
       - DOCKER=1
       - PUSH_GATEWAY_ENABLED=True
-      # - MLFLOW_ENABLED=True
     depends_on:
       - base_image
       - pushgateway_service
 
+  # Feature building service for generating features necessary for machine learning models.
   build_features_service:
     build:
       context: .
       dockerfile: ./src/api/microservices/build_features_service/Dockerfile
     ports:
-      - "8002:8002"
+      - "8002:8002" # Exposes port 8002
     networks:
       - my_network_for_api
     volumes:
-      - ./logs:/app/logs
-      - ./data:/app/data
+      - ./logs:/app/logs # Mounts host log directory to the container.
+      - ./data:/app/data # Mounts host data directory to the container.
     environment:
       - DOCKER=1
       - PUSH_GATEWAY_ENABLED=True
-      # - MLFLOW_ENABLED=True
     depends_on:
       - base_image
       - pushgateway_service
 
-
+  # Training service to train machine learning models.
   train_model_service:
     build:
       context: .
       dockerfile: ./src/api/microservices/train_model_service/Dockerfile
     ports:
-      - "8003:8003"
+      - "8003:8003" # Exposes port 8003
     networks:
       - my_network_for_api
     volumes:
-      - ./logs:/app/logs
-      - ./data:/app/data
-      - ./models:/app/models
+      - ./logs:/app/logs # Mounts host log directory to the container.
+      - ./data:/app/data # Mounts host data directory to the container.
+      - ./models:/app/models # Mounts host model directory to the container.
     environment:
       - DOCKER=1
       - PUSH_GATEWAY_ENABLED=True
@@ -93,18 +110,19 @@ services:
       - pushgateway_service
       - mlflow_service
 
+  # Prediction service to serve machine learning model predictions.
   predict_service:
     build:
       context: .
       dockerfile: ./src/api/microservices/predict_service/Dockerfile
     ports:
-      - "8004:8004"
+      - "8004:8004" # Exposes port 8004
     networks:
       - my_network_for_api
     volumes:
-      - ./logs:/app/logs
-      - ./data:/app/data
-      - ./models:/app/models
+      - ./logs:/app/logs # Mounts host log directory to the container.
+      - ./data:/app/data # Mounts host data directory to the container.
+      - ./models:/app/models # Mounts host model directory to the container.
     environment:
       - DOCKER=1
       - PUSH_GATEWAY_ENABLED=True
@@ -114,64 +132,68 @@ services:
       - pushgateway_service
       - mlflow_service
 
+  # MLflow service for experiment tracking, model versioning, and artifact storage.
   mlflow_service:
     build:
       context: .
       dockerfile: ./src/monitoring/mlflow/Dockerfile
     ports:
-      - "9092:9092"
+      - "9092:9092" # Exposes MLflow on port 9092
     networks:
       - my_network_for_api
     volumes:
-      - ./data-mlflow:/app
+      - ./data-mlflow:/app  # Mounts a volume for MLflow data storage.
     depends_on:
       - base_image
 
+  # Grafana service for dashboard visualization of metrics and logs.
   grafana_service:
-    image: grafana/grafana:latest
+    image: grafana/grafana:latest  # Uses the latest Grafana image.
     ports:
-      - '3000:3000'
+      - '3000:3000'  # Exposes Grafana on port 3000.
     networks:
       - my_network_for_api
-    volumes:
+    volumes: # Persistent storage for Grafana data.
       - ./data-grafana:/var/lib/grafana
       - ./cfg-grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./cfg-grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./cfg-grafana/dashboards:/var/lib/grafana/dashboards
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin  
+      - GF_SECURITY_ADMIN_PASSWORD=admin  # Sets the admin password for Grafana.
     depends_on:
       - prometheus_service
 
+  # Prometheus Service configuration for monitoring
   prometheus_service:
     image: prom/prometheus:latest
     container_name: prometheus_service
     ports:
-      - "9090:9090"
+      - "9090:9090" # Exposes Prometheus on port 9090
     networks:
       - my_network_for_api
-    restart: unless-stopped
+    restart: unless-stopped # Restarts the container if it fails
     volumes:
       - ./cfg-prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./data-prometheus:/prometheus/data
     command:
-      - '--web.enable-lifecycle'
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.enable-lifecycle' # Enables lifecycle endpoints
+      - '--config.file=/etc/prometheus/prometheus.yml' # Specifies the configuration file
     depends_on:
       - pushgateway_service
 
+  # Pushgateway Service configuration for intermediate metric pushing
   pushgateway_service:
-    image: prom/pushgateway  
+    image: prom/pushgateway
     container_name: pushgateway_service
     ports:
-      - "9091:9091"
+      - "9091:9091" # Exposes Pushgateway on port 9091
     command:
-      - '--persistence.file=/data/metric.store'
+      - '--persistence.file=/data/metric.store' # Persists metrics to a file
     networks:
       - my_network_for_api
     volumes:
-      - ./data-prometheus:/data
+      - ./data-prometheus:/data # Persistent storage for Pushgateway metrics
 
+# Defines the network used by all services
 networks:
   my_network_for_api:
-
