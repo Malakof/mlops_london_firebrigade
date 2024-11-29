@@ -29,6 +29,7 @@ MOBILISATION_CLEANED_ROWS_METRIC = "mobilisation_cleaned_rows"
 STATION_ROWS_METRIC = "station_rows"
 SAVED_FILE_SIZE_METRIC = "saved_file_size"
 SUCCESS_METRIC = "success"
+MERGED_ROWS_METRIC = 'merged_rows'
 
 def _load_data():
     """
@@ -138,7 +139,7 @@ def _merge_datasets(df_incident, df_mobilisation):
                                     'latitude_station', 'longitude_station', 'Latitude', 'Longitude',
                                     'Resource_Code', 'VitesseMoy'], axis=1)
         logging.info("Dataset merge and filter completed.", metrics={
-            'merged_rows': len(df_merged)
+            MERGED_ROWS_METRIC: len(df_merged)
         })
         return df_merged
     except Exception as e:
