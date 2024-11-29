@@ -27,6 +27,18 @@ else:
 if not os.path.exists(log_directory):
     os.makedirs(log_directory)
 
+def ascii_happy_dog_face():
+    happy_dog_face_lines = [
+        "  / \\__",
+        " (    @\\___",
+        " /         O",
+        "/   (_____/",
+        "/_____/   U"
+    ]
+    for line in happy_dog_face_lines:
+        warnings.warn(line, UserWarning)
+
+
 # définition des urls
 #url_incident = "https://data.london.gov.uk/download/london-fire-brigade-incident-records/73728cf4-b70e-48e2-9b97-4e4341a2110d/LFB%20Incident%20data%20from%202009%20-%202017.csv"
 url_incident = "https://data.london.gov.uk/download/london-fire-brigade-incident-records/f5066d66-c7a3-415f-9629-026fbda61822/LFB%20Incident%20data%20from%202018%20onwards.csv.xlsx"
