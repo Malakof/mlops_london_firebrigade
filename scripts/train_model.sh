@@ -54,8 +54,10 @@ test_train_model_mlflow_docker() {
 
 
 # Run all tests
-test_health
+
 test_data_preprocessing
+sleep 60
 test_build_features
 test_train_model_mlflow_docker
 test_predict
+test_health
