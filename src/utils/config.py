@@ -5,6 +5,8 @@ import warnings
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
+from fontTools.varLib.iup import MAX_LOOKBACK
+
 # TODO: Find a way to remove this
 if os.environ.get('DOCKER') == '1':
     #pour docker
@@ -22,21 +24,11 @@ else:
     # Define the log directory and make sure it exists
     log_directory = '../../logs'
     DEFAULT_PUSHGATEWAY_URL = 'http://127.0.0.1:9091'
-    DEFAULT_MLFLOW_TRACKING_URI = 'http://127.0.0.1:5000'
+    DEFAULT_MLFLOW_TRACKING_URI = 'http://127.0.0.1:9092'
 
 if not os.path.exists(log_directory):
     os.makedirs(log_directory)
 
-def ascii_happy_dog_face():
-    happy_dog_face_lines = [
-        "  / \\__",
-        " (    @\\___",
-        " /         O",
-        "/   (_____/",
-        "/_____/   U"
-    ]
-    for line in happy_dog_face_lines:
-        warnings.warn(line, UserWarning)
 
 
 # définition des urls
@@ -384,26 +376,22 @@ class LoggingMetricsManager(metaclass=SingletonMeta):
 
         return loggers
 
-# mlflow utils
+
 import mlflow
 import mlflow.sklearn
+import mlflow.models
 import joblib
+import numpy as np
+
 
 def start_mlflow_session(experiment_name, tracking_uri):
-    """
-    Initialize the MLflow tracking environment by setting the tracking URI and selecting the experiment.
-
-    Args:
-        experiment_name (str): The name of the experiment under which to log runs.
-        tracking_uri (str): The URI of the MLflow tracking server.
-    """
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(experiment_name)
 
 
-def log_model(model, encoder, run_name, model_path, encoder_path, metrics):
+def log_model(model, encoder, run_name, model_path, encoder_path, metrics, mae_threshold=np.inf):
     """
-    Log the ML model, its encoder, and performance metrics to MLflow and register the model.
+    Log the ML model, its encoder, and performance metrics to MLflow, register the model, and tag it as 'prod' or 'dev'.
 
     Args:
         model: The trained model object.
@@ -411,17 +399,41 @@ def log_model(model, encoder, run_name, model_path, encoder_path, metrics):
         run_name (str): The name to give to the MLflow run.
         model_path (str): Path where the model is saved locally.
         encoder_path (str): Path where the encoder is saved locally.
-        metrics (dict): A dictionary of performance metrics to log.
+        metrics (dict): A dictionary of performance metrics to log, including 'mae'.
+        mae_threshold (float): The MAE to beat to tag the model as 'prod', otherwise it's tagged as 'dev'.
     """
     with mlflow.start_run() as run:
-        mlflow.set_tag("mlflow.runName", run_name)  # Set a custom name for the MLflow run
-        mlflow.log_params({"model_type": "linear_regression"})  # Log model parameters
-        mlflow.log_metrics(metrics)  # Log performance metrics
-        mlflow.sklearn.log_model(model, "model", registered_model_name=run_name)  # Log and register the model
-        mlflow.log_artifact(encoder_path, "encoder")  # Log the encoder as an artifact
-        mlflow.register_model(f"runs:/{run.info.run_id}/model", run_name)  # Register the model in MLflow
+        # Log model, parameters, and metrics
+        mlflow.log_params({"model_type": "linear_regression"})
+        mlflow.log_metrics(metrics)
+        mlflow.sklearn.log_model(model, "model", registered_model_name=run_name)
+        mlflow.log_artifact(encoder_path, "encoder")
 
-def load_model_and_encoder(run_name):
+        # Conditional tagging based on MAE
+        current_mae = metrics.get('mae', np.inf)
+        prod_tag = "dev"
+        # mae does not cahnge so this is a trick to tag dev to prod modfel
+        if current_mae <= mae_threshold:
+            prod_tag = "prod"
+            # Find and untag the current 'prod' model
+            untag_current_prod_model()
+
+        mlflow.set_tag("environment", prod_tag)
+        mlflow.register_model(f"runs:/{run.info.run_id}/model", run_name)
+
+
+def untag_current_prod_model():
+    """
+    Remove the 'prod' tag from the currently tagged 'prod' model.
+    """
+    runs = mlflow.search_runs(filter_string="tags.environment='prod'",
+                              order_by=["attribute.start_time DESC"], max_results=1)
+    if not runs.empty:
+        run_id = runs.iloc[0]['run_id']
+        mlflow.set_tag("environment", 'dev')
+
+
+def load_model_and_encoder(run_name, tag='prod'):
     """
     Load the machine learning model and encoder either from local disk or MLflow based on configuration.
 
@@ -433,14 +445,12 @@ def load_model_and_encoder(run_name):
     """
     try:
         if MLFLOW_ENABLED:
-            mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-            mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+            start_mlflow_session(MLFLOW_EXPERIMENT_NAME, MLFLOW_TRACKING_URI)
 
-            # Search for the latest run with the given name
-            runs = mlflow.search_runs(filter_string=f"tags.mlflow.runName='{run_name}'",
-                                      order_by=["attribute.start_time DESC"], max_results=1)
+            runs = mlflow.search_runs(filter_string=f"tags.environment='{tag}'",
+                              order_by=["attribute.start_time DESC"], max_results=1)
             if runs.empty:
-                raise Exception("No runs found for the specified tag.")
+                raise Exception(f"No runs found for the specified environment tag: {tag}")
 
             # Extract the run ID
             run_id = runs.iloc[0]['run_id']

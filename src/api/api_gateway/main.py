@@ -8,7 +8,15 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, Field
 import httpx
 
+import mlflow
 from src.utils import config as cfg
+
+from src.utils.config import LoggingMetricsManager, load_model_and_encoder
+
+# Get the logger for model training
+logging = LoggingMetricsManager().metrics_loggers['api']
+logging.info("API Logger loaded")
+
 from src.utils.config import LoggingMetricsManager
 
 # Get the logger for model training
@@ -109,28 +117,34 @@ async def predict(distance: float = Query(..., description="Distance to the inci
     return response.json()
 
 
-@app.get("/health",
-         summary="Check the health of the model",
-         response_model=Dict[str, str])
+@app.get("/health", summary="Check the health of the model", response_model=Dict[str, str])
 async def health_check():
     try:
-        # Check if necessary files exist
-        required_files = [
-            os.path.join(cfg.chemin_data, cfg.fichier_incident),
-            os.path.join(cfg.chemin_data, cfg.fichier_mobilisation),
-            os.path.join(cfg.chemin_model, cfg.fichier_model)
-        ]
-        for file in required_files:
-            if not os.path.exists(file):
-                return {"status": "warning", "message": f"Required file not found: {file}"}
+        if os.getenv('MLFLOW_ENABLED', 'False') == 'True':
+            logging.info("MLFLOW_ENABLED is True")
+            # Assuming MLFLOW_TRACKING_URI and MLFLOW_EXPERIMENT_NAME are configured
+            mlflow.set_tracking_uri(cfg.MLFLOW_TRACKING_URI)
+            mlflow.set_experiment(cfg.MLFLOW_EXPERIMENT_NAME)
 
-        return {"status": "healthy", "message": "All systems operational"}
+            # Check if a 'prod' model exists
+            runs = mlflow.search_runs(filter_string="tags.environment='prod'",
+                                      order_by=["attribute.start_time DESC"], max_results=1)
+            if runs.empty:
+                return {"status": "error", "message": "No production model found in MLflow."}
+            else:
+                return {"status": "ok", "message": "Production model is available in MLflow."}
+        else:
+            logging.info("MLFLOW_ENABLED is False")
+            # Check if necessary local files exist
+            required_files = [
+                os.path.join(cfg.chemin_data, cfg.fichier_incident),
+                os.path.join(cfg.chemin_data, cfg.fichier_mobilisation),
+                os.path.join(cfg.chemin_model, cfg.fichier_model)
+            ]
+            for file in required_files:
+                if not os.path.exists(file):
+                    return {"status": "warning", "message": f"Required file not found: {file}"}
+
+            return {"status": "ok", "message": "All local files are present."}
     except Exception as e:
-        logging.error(f"Error in health check: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+        return {"status": "error", "message": f"Health check failed: {str(e)}"}

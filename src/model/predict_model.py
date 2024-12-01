@@ -3,7 +3,8 @@ import sys
 
 import pandas as pd
 
-from src.utils.config import LoggingMetricsManager, load_model_and_encoder, ascii_happy_dog_face
+
+from src.utils.config import LoggingMetricsManager, load_model_and_encoder
 
 # Get the logger for model training
 logging = LoggingMetricsManager().metrics_loggers['predict_model']
@@ -22,6 +23,22 @@ logging.info("predict_model Logger loaded")
 NUM_FEATURES_METRIC = 'num_features'
 NUM_PREDICTIONS_METRIC = 'prediction_result'
 SUCCESS_METRIC = 'success'
+
+
+
+
+def ascii_happy_dog_face():
+    happy_dog_face_lines = [
+        "  / \\__",
+        " (    @\\___",
+        " /         O",
+        "/   (_____/",
+        "/_____/   U"
+    ]
+    for line in happy_dog_face_lines:
+        logging.info(line)
+
+
 
 def _prepare_features(data, encoder):
     """
@@ -62,7 +79,8 @@ def _prepare_features(data, encoder):
 
 def make_predict(distance=1.3, station_de_depart='Acton'):
     """
-    Conducts the entire prediction process: loads the model and encoder, prepares features, and makes predictions.
+    Conducts the entire prediction process: loads the model and encoder tagged as 'prod',
+    prepares features, and makes predictions.
 
     Args:
         distance (float): Distance for prediction input.
@@ -72,8 +90,8 @@ def make_predict(distance=1.3, station_de_depart='Acton'):
         DataFrame: Predictions as a DataFrame.
     """
     try:
-        # Load the model and encoder
-        model, encoder = load_model_and_encoder("LFB_MLOPS_Model")
+        # Load the model and encoder tagged as 'prod'
+        model, encoder = load_model_and_encoder('prod')
 
         # Create a DataFrame for new data with distance and station name
         new_data = pd.DataFrame({
@@ -90,11 +108,8 @@ def make_predict(distance=1.3, station_de_depart='Acton'):
         # Convert predictions to a DataFrame
         predictions_df = pd.DataFrame(predictions, columns=['Predicted AttendanceTimeSeconds'])
 
-        # Log the successful completion of prediction
-        logging.info("Prediction completed successfully.", metrics={
-            NUM_PREDICTIONS_METRIC: predictions[0]
-        })
-        logging.debug(f"Predictions: {predictions}, completed successfully.")
+        logging.info("Prediction completed successfully.")
+        logging.debug(f"Predictions: {predictions}")
         logging.info("TEST METRIC", metrics={'XXXXXX_TEST_METRIC_XXXXXX': 6666})
         ascii_happy_dog_face()
 
@@ -103,9 +118,7 @@ def make_predict(distance=1.3, station_de_depart='Acton'):
         logging.error("Failed to make predictions: " + str(e))
         raise
 
-    # Return the predictions as a DataFrame
     return predictions_df
-
 
 def main():
     """

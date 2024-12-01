@@ -49,6 +49,9 @@ services:
       - DOCKER=1  # Environment variable to indicate the service is running in Docker.
       - PUSH_GATEWAY_ENABLED=True
       - MLFLOW_ENABLED=True
+      - MLFLOW_TRACKING_URI=http://mlflow_service:9092
+
+
 
   # Data processing service to handle data ingestion and preprocessing.
   process_data_service:
@@ -105,6 +108,7 @@ services:
       - DOCKER=1
       - PUSH_GATEWAY_ENABLED=True
       - MLFLOW_ENABLED=True
+
     depends_on:
       - base_image
       - pushgateway_service
@@ -127,6 +131,7 @@ services:
       - DOCKER=1
       - PUSH_GATEWAY_ENABLED=True
       - MLFLOW_ENABLED=True
+      - MLFLOW_TRACKING_URI=http://mlflow_service:9092
     depends_on:
       - base_image
       - pushgateway_service

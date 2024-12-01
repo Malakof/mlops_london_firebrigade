@@ -9,9 +9,12 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, m
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 
+from src.model.predict_model import NUM_FEATURES_METRIC
 from src.utils import config as cfg
 from src.utils.config import LoggingMetricsManager, log_model, start_mlflow_session
 from src.utils.config import MLFLOW_ENABLED
+import mlflow
+import numpy as np
 
 # Get the logger for model training
 logging = LoggingMetricsManager().metrics_loggers['train_model']
@@ -79,9 +82,12 @@ def _preprocess_data(df):
     # Concatenate numeric and encoded categorical features into a single DataFrame
     processed_data = pd.concat([df[numeric_features].reset_index(drop=True), encoded_df.reset_index(drop=True)], axis=1)
 
+
     # Log the completion of data preprocessing with the processed data size metric
     logging.info("Data preprocessing completed.",
-                 metrics={PROCESSED_DATA_SIZE_METRIC: processed_data.memory_usage(deep=True).sum()})
+                  metrics={PROCESSED_DATA_SIZE_METRIC: 1})
+    logging.info("Features prepared for prediction.", metrics={
+         NUM_FEATURES_METRIC: len(numeric_features) + len(categorical_features)})
 
     # Return the processed data and the fitted encoder
     return processed_data, encoder
@@ -148,6 +154,7 @@ def _save_model(model, encoder, model_path, encoder_path):
     joblib.dump(encoder, encoder_path)
 
 
+
 def train_pipeline(data_path, model_path, encoder_path):
     """
     Full pipeline for training a linear regression model from data loading to saving the model.
@@ -172,7 +179,12 @@ def train_pipeline(data_path, model_path, encoder_path):
         # Log model and metrics in MLflow if enabled
         if MLFLOW_ENABLED:
             start_mlflow_session(cfg.MLFLOW_EXPERIMENT_NAME, cfg.MLFLOW_TRACKING_URI)
-            log_model(model, encoder, "LFB_MLOPS_Model", model_path, encoder_path, metrics)
+
+            # Determine the threshold MAE by fetching the best 'prod' model's MAE
+            mae_threshold = _get_best_prod_mae()
+
+            # Log model to MLflow with conditional tagging
+            log_model(model, encoder, "LFB_MLOPS_Model", model_path, encoder_path, metrics, mae_threshold)
 
         # Save model and encoder locally
         _save_model(model, encoder, model_path, encoder_path)
@@ -184,6 +196,21 @@ def train_pipeline(data_path, model_path, encoder_path):
 
     return metrics
 
+def _get_best_prod_mae():
+    """
+    Fetch the best MAE of a model tagged as 'prod' from MLflow.
+
+    Returns:
+        float: The best MAE metric of the 'prod' model or a high default value if none exists.
+    """
+    try:
+        runs = mlflow.search_runs(filter_string="tags.environment='prod'",
+                                  order_by=["metrics.mae ASC"], max_results=1)
+        if not runs.empty:
+            return runs.iloc[0]['metrics.mae']
+    except Exception as e:
+        logging.error(f"Failed to fetch best 'prod' model MAE: {e}")
+    return np.inf  # Return a high default MAE if no 'prod' models or error in fetching
 
 def main():
     """Main function to handle command-line arguments and initiate the ML pipeline."""
