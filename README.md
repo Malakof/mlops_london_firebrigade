@@ -113,11 +113,9 @@ source .venv/bin/activate
 pip install -r requirements.txt
 export PYTHONPATH="${PYTHONPATH}:${PWD}/src"
 ```
-- **Install Docker and Docker Compose if needed:**
+- **  **
 ```bash
-sudo apt-get update
-sudo apt-get install -y docker.io
-sudo apt-get install -y docker-compose
+
 ```
 
 - **Build and run Docker containers locally:**
@@ -149,6 +147,13 @@ Navigate to http://localhost:9090 to access the Prometheus metrics grabbed from 
 - **Access the Grafana UI:**
 Navigate to http://localhost:3000 to access the Grafana UI to acces dashboard.
 
+
+- **Run the script to train amodel and make a prediction:**
+```bash
+./scripts/train_model.sh
+```
+
+- **A cron job can be set up to download, process data and train a model at a specified interval:**
 
 
 ## 1.3 Main Components
