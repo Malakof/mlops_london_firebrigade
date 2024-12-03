@@ -11,6 +11,7 @@ test_health() {
 test_predict() {
   echo "--> Predict..."
   curl 'http://localhost:8000/predict?distance=2.5&station=Acton'
+  echo -e "\n"
 }
 
 test_data_preprocessing() {
