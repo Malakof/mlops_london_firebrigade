@@ -54,7 +54,7 @@ test_train_model_mlflow_docker() {
 
 
 # Run all tests
-
+set -x
 test_data_preprocessing
 sleep 60
 test_build_features
