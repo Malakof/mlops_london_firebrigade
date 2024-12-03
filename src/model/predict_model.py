@@ -108,14 +108,16 @@ def make_predict(distance=1.3, station_de_depart='Acton'):
         # Convert predictions to a DataFrame
         predictions_df = pd.DataFrame(predictions, columns=['Predicted AttendanceTimeSeconds'])
 
-        logging.info("Prediction completed successfully.")
-        logging.debug(f"Predictions: {predictions}")
+        # Log the successful completion of prediction
+        logging.info("Prediction completed successfully.", metrics={
+            NUM_PREDICTIONS_METRIC: predictions[0]
+        })
         # logging.info("TEST METRIC", metrics={'XXXXXX_DOG_METRIC_XXXXXX': 6666})
         # ascii_happy_dog_face()
 
     except Exception as e:
         # Log any errors that occur during prediction
-        logging.error("Failed to make predictions: " + str(e))
+        logging.error("Failed to make predictions: " + str(e), metrics={SUCCESS_METRIC: False})
         raise
 
     return predictions_df
