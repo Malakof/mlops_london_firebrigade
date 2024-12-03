@@ -113,9 +113,9 @@ source .venv/bin/activate
 pip install -r requirements.txt
 export PYTHONPATH="${PYTHONPATH}:${PWD}/src"
 ```
-- **  **
+- **You can use the demo script ALL IN ONE, copy it, and run it from the command prompt, it will clone the project, download the data, process it, train a model and mount all services:**
 ```bash
-
+./scripts/demo.sh
 ```
 
 - **Build and run Docker containers locally:**
